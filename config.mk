@@ -1,0 +1,9 @@
+# Install paths
+PREFIX = /usr/local
+
+# Stock FLAGS
+SACCCFLAGS = -D_POSIX_C_SOURCE=200809L $(CFLAGS)
+SACCLDFLAGS = $(LDFLAGS)
+
+.c:
+	$(CC) -o $@ $(SACCCFLAGS) $(SACCLDFLAGS) $<
