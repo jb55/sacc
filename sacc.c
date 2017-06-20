@@ -274,24 +274,31 @@ connectto(const char *host, const char *port)
 	return sock;
 }
 
-void
+int
 dig(Item *entry, Item *item)
 {
 	int sock;
 
-	if (item->target ||   /* already in cache */
-	    item->type > '1') /* not supported */
-		return;
+	if (item->target)     /* already in cache */
+		return 1;
+
+	item->entry = entry;
+
+	if (item->type > '1') /* not supported */
+		return 0;
 
 	sock = connectto(item->host, item->port);
 	sendselector(sock, item->selector);
-	item->entry = entry;
 	item->raw = getrawitem(sock);
+
+	if (!*item->raw)      /* empty read */
+		return 0;
 
 	if (item->type == '0')
 		item->target = item->raw;
 	else if (item->type == '1')
 		item->target = parsediritem(item->raw);
+	return 1;
 }
 
 Item *
@@ -370,9 +377,14 @@ main(int argc, char *argv[])
 	hole = parseurl(argv[1]);
 
 	for (;;) {
-		dig(entry, hole);
-		if (!(n = display(hole)))
-			break;
+		if (dig(entry, hole)) {
+			n = display(hole);
+		} else {
+			n = 0;
+			fprintf(stderr, "Couldn't get %s:%s/%c%s\n",
+			        hole->host, hole->port,
+			        hole->type, hole->selector);
+		}
 		do {
 			printf("%d items, visit (0: back, ^D or q: quit): ", n);
 			if (!fgets(buf, sizeof(buf), stdin)) {
