@@ -358,6 +358,7 @@ int
 main(int argc, char *argv[])
 {
 	Item *hole;
+	char buf[BUFSIZ];
 	int n, itm;
 
 	if (argc != 2)
@@ -370,10 +371,16 @@ main(int argc, char *argv[])
 		if (!(n = display(hole)))
 			break;
 		do {
-			printf("%d items, visit (empty to quit): ", n);
-			if (scanf("%d", &itm) != 1)
+			printf("%d items, visit (^D or q: quit): ", n);
+			if (!fgets(buf, sizeof(buf), stdin)) {
+				putchar('\n');
 				goto quit;
-		} while (itm < 1 && itm > n);
+			}
+			if (!strcmp(buf, "q\n"))
+				goto quit;
+			if (sscanf(buf, "%d", &itm) != 1)
+				continue;
+		} while (itm < 1 || itm > n);
 		hole = ((Item **)hole->target)[itm-1];
 	}
 
