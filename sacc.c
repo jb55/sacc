@@ -275,15 +275,17 @@ connectto(const char *host, const char *port)
 }
 
 void
-dig(Item *item)
+dig(Item *entry, Item *item)
 {
 	int sock;
 
-	if (item->type > '1') /* not supported */
+	if (item->target ||   /* already in cache */
+	    item->type > '1') /* not supported */
 		return;
 
 	sock = connectto(item->host, item->port);
 	sendselector(sock, item->selector);
+	item->entry = entry;
 	item->raw = getrawitem(sock);
 
 	if (item->type == '0')
@@ -357,21 +359,22 @@ parseurl(const char *URL)
 int
 main(int argc, char *argv[])
 {
-	Item *hole;
 	char buf[BUFSIZ];
+	Item *entry, *hole;
 	int n, itm;
 
 	if (argc != 2)
 		usage();
 
+	entry = NULL;
 	hole = parseurl(argv[1]);
 
 	for (;;) {
-		dig(hole);
+		dig(entry, hole);
 		if (!(n = display(hole)))
 			break;
 		do {
-			printf("%d items, visit (^D or q: quit): ", n);
+			printf("%d items, visit (0: back, ^D or q: quit): ", n);
 			if (!fgets(buf, sizeof(buf), stdin)) {
 				putchar('\n');
 				goto quit;
@@ -380,8 +383,13 @@ main(int argc, char *argv[])
 				goto quit;
 			if (sscanf(buf, "%d", &itm) != 1)
 				continue;
-		} while (itm < 1 || itm > n);
-		hole = ((Item **)hole->target)[itm-1];
+		} while (itm < 0 || itm > n);
+		if (itm) {
+			entry = hole;
+			hole = ((Item **)hole->target)[itm-1];
+		} else if (hole->entry) {
+			hole = hole->entry;
+		}
 	}
 
 quit:
