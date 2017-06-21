@@ -307,27 +307,36 @@ delve(Item *hole)
 	char buf[BUFSIZ];
 	Item *entry = NULL;
 	int n, itm;
+	char nl;
 
 	for (;;) {
 		if (dig(entry, hole)) {
 			n = display(hole);
 		} else {
 			n = 0;
-			fprintf(stderr, "Couldn't get %s:%s/%c%s\n",
-			        hole->host, hole->port,
-			        hole->type, hole->selector);
+			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
+			                hole->port, hole->type, hole->selector);
 		}
+
 		do {
 			printf("%d items, visit (0: back, ^D or q: quit): ", n);
+
 			if (!fgets(buf, sizeof(buf), stdin)) {
 				putchar('\n');
 				return;
 			}
 			if (!strcmp(buf, "q\n"))
 				return;
-			if (sscanf(buf, "%d", &itm) != 1)
+
+			itm = -1;
+			if (*buf < '0' || *buf > '9')
 				continue;
+
+			nl = '\0';
+			if (sscanf(buf, "%d%c", &itm, &nl) != 2 || nl != '\n')
+				itm = -1;
 		} while (itm < 0 || itm > n);
+
 		if (itm) {
 			entry = hole;
 			hole = ((Item **)hole->target)[itm-1];
