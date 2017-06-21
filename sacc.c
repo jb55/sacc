@@ -311,49 +311,60 @@ dig(Item *entry, Item *item)
 	return 1;
 }
 
+int
+menu(int items)
+{
+	char buf[BUFSIZ], nl;
+	int item;
+
+	do {
+		printf("%d items (h for help): ", items);
+
+		if (!fgets(buf, sizeof(buf), stdin)) {
+			putchar('\n');
+			return -1;
+		}
+		if (!strcmp(buf, "q\n"))
+			return -1;
+
+		item = -1;
+		if (!strcmp(buf, "h\n")) {
+			help();
+			continue;
+		}
+		if (*buf < '0' || *buf > '9')
+			continue;
+
+		nl = '\0';
+		if (sscanf(buf, "%d%c", &item, &nl) != 2 || nl != '\n')
+			item = -1;
+	} while (item < 0 || item > items);
+
+	return item;
+}
+
 void
 delve(Item *hole)
 {
-	char buf[BUFSIZ];
 	Item *entry = NULL;
-	int n, itm;
-	char nl;
+	int items, item;
 
 	for (;;) {
 		if (dig(entry, hole)) {
-			n = display(hole);
+			items = display(hole);
 		} else {
-			n = 0;
+			items = 0;
 			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
 			                hole->port, hole->type, hole->selector);
 		}
 
-		do {
-			printf("%d items (h for help): ", n);
+		item = menu(items);
 
-			if (!fgets(buf, sizeof(buf), stdin)) {
-				putchar('\n');
-				return;
-			}
-			if (!strcmp(buf, "q\n"))
-				return;
-
-			itm = -1;
-			if (!strcmp(buf, "h\n")) {
-				help();
-				continue;
-			}
-			if (*buf < '0' || *buf > '9')
-				continue;
-
-			nl = '\0';
-			if (sscanf(buf, "%d%c", &itm, &nl) != 2 || nl != '\n')
-				itm = -1;
-		} while (itm < 0 || itm > n);
-
-		if (itm) {
+		if (item > 0) {
 			entry = hole;
-			hole = ((Item **)hole->target)[itm-1];
+			hole = ((Item **)hole->target)[item-1];
+		} else if (item < 0) {
+			return;
 		} else if (hole->entry) {
 			hole = hole->entry;
 		}
