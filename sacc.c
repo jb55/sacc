@@ -80,6 +80,16 @@ usage(void)
 	die("usage: sacc URL");
 }
 
+void
+help(void)
+{
+	puts("Commands:\n"
+             "N = [1-9]...: browse item N.\n"
+             "0: browse previous item.\n"
+             "^D, q: quit.\n"
+             "h: this help.");
+}
+
 const char *
 typedisplay(char t)
 {
@@ -319,7 +329,7 @@ delve(Item *hole)
 		}
 
 		do {
-			printf("%d items, visit (0: back, ^D or q: quit): ", n);
+			printf("%d items (h for help): ", n);
 
 			if (!fgets(buf, sizeof(buf), stdin)) {
 				putchar('\n');
@@ -329,6 +339,10 @@ delve(Item *hole)
 				return;
 
 			itm = -1;
+			if (!strcmp(buf, "h\n")) {
+				help();
+				continue;
+			}
 			if (*buf < '0' || *buf > '9')
 				continue;
 
