@@ -301,6 +301,42 @@ dig(Item *entry, Item *item)
 	return 1;
 }
 
+void
+delve(Item *hole)
+{
+	char buf[BUFSIZ];
+	Item *entry = NULL;
+	int n, itm;
+
+	for (;;) {
+		if (dig(entry, hole)) {
+			n = display(hole);
+		} else {
+			n = 0;
+			fprintf(stderr, "Couldn't get %s:%s/%c%s\n",
+			        hole->host, hole->port,
+			        hole->type, hole->selector);
+		}
+		do {
+			printf("%d items, visit (0: back, ^D or q: quit): ", n);
+			if (!fgets(buf, sizeof(buf), stdin)) {
+				putchar('\n');
+				return;
+			}
+			if (!strcmp(buf, "q\n"))
+				return;
+			if (sscanf(buf, "%d", &itm) != 1)
+				continue;
+		} while (itm < 0 || itm > n);
+		if (itm) {
+			entry = hole;
+			hole = ((Item **)hole->target)[itm-1];
+		} else if (hole->entry) {
+			hole = hole->entry;
+		}
+	}
+}
+
 Item *
 parseurl(const char *URL)
 {
@@ -366,45 +402,14 @@ parseurl(const char *URL)
 int
 main(int argc, char *argv[])
 {
-	char buf[BUFSIZ];
-	Item *entry, *hole;
-	int n, itm;
+	Item *hole;
 
 	if (argc != 2)
 		usage();
 
-	entry = NULL;
 	hole = parseurl(argv[1]);
 
-	for (;;) {
-		if (dig(entry, hole)) {
-			n = display(hole);
-		} else {
-			n = 0;
-			fprintf(stderr, "Couldn't get %s:%s/%c%s\n",
-			        hole->host, hole->port,
-			        hole->type, hole->selector);
-		}
-		do {
-			printf("%d items, visit (0: back, ^D or q: quit): ", n);
-			if (!fgets(buf, sizeof(buf), stdin)) {
-				putchar('\n');
-				goto quit;
-			}
-			if (!strcmp(buf, "q\n"))
-				goto quit;
-			if (sscanf(buf, "%d", &itm) != 1)
-				continue;
-		} while (itm < 0 || itm > n);
-		if (itm) {
-			entry = hole;
-			hole = ((Item **)hole->target)[itm-1];
-		} else if (hole->entry) {
-			hole = hole->entry;
-		}
-	}
-
-quit:
+	delve(hole);
 	free(hole); /* TODO free all tree recursively */
 
 	return 0;
