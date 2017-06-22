@@ -190,15 +190,23 @@ Dir *
 molddiritem(char *raw)
 {
 	Item *item, **items = NULL;
+	char *crlf, *p;
 	Dir *dir;
-	size_t nitems = 0;
+	size_t i, nitems;
+
+	for (crlf = raw, nitems = 0; p = strstr(crlf, "\r\n"); ++nitems)
+		crlf = p+2;
+	if (--nitems < 1)
+		return NULL;
+	if (strcmp(crlf-3, ".\r\n"))
+		return NULL;
 
 	dir = xmalloc(sizeof(Dir));
+	items = xreallocarray(items, nitems, sizeof(Item*));
 
-	while (strncmp(raw, ".\r\n", 3)) {
-		items = xreallocarray(items, ++nitems, sizeof(Item*));
-
+	for (i = 0; i < nitems; ++i) {
 		item = xmalloc(sizeof(Item));
+
 		item->type = *raw++;
 		item->username = pickfield(&raw);
 		item->selector = pickfield(&raw);
@@ -208,7 +216,7 @@ molddiritem(char *raw)
 		item->entry = NULL;
 		item->dir = NULL;
 
-		items[nitems-1] = item;
+		items[i] = item;
 	}
 
 	dir->items = items;
@@ -314,8 +322,9 @@ dig(Item *entry, Item *item)
 		return 0;
 	}
 
-	if (item->type == '1')
-		item->dir = molddiritem(item->raw);
+	if (item->type == '1' &&
+	    !(item->dir = molddiritem(item->raw)))
+		return 0;
 	return 1;
 }
 
