@@ -90,6 +90,7 @@ help(void)
 	puts("Commands:\n"
              "N = [1-9]...: browse item N.\n"
              "0: browse previous item.\n"
+	     "!: refetch failed item.\n"
              "^D, q: quit.\n"
              "h: this help.");
 }
@@ -346,6 +347,12 @@ selectitem(Item *entry)
 		}
 		if (!strcmp(buf, "q\n"))
 			return NULL;
+
+		if (!strcmp(buf, "!\n")) {
+			if (entry->raw)
+				continue;
+			return entry;
+		}
 
 		item = -1;
 		if (!strcmp(buf, "h\n")) {
