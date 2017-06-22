@@ -143,7 +143,7 @@ display(Item *item)
 
 	switch (item->type) {
 	case '0':
-		puts(item->target);
+		puts(item->raw);
 		break;
 	case '1':
 		items = item->dir->items;
@@ -203,6 +203,7 @@ molddiritem(char *raw)
 		item->selector = pickfield(&raw);
 		item->host = pickfield(&raw);
 		item->port = pickfield(&raw);
+		item->raw = NULL;
 		item->dir = NULL;
 
 		items[nitems-1] = item;
@@ -293,7 +294,7 @@ dig(Item *entry, Item *item)
 {
 	int sock;
 
-	if (item->target)     /* already in cache */
+	if (item->raw)     /* already in cache */
 		return 1;
 
 	item->entry = entry;
@@ -308,8 +309,6 @@ dig(Item *entry, Item *item)
 	if (!*item->raw)      /* empty read */
 		return 0;
 
-	if (item->type == '0')
-		item->target = item->raw;
 	if (item->type == '1')
 		item->dir = molddiritem(item->raw);
 	return 1;
