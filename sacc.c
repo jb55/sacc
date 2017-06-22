@@ -5,7 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stropts.h>
+#include <termios.h> /* ifdef BSD */
 #include <unistd.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
@@ -19,6 +22,7 @@ struct item {
 	char *host;
 	char *port;
 	char *raw;
+	size_t printoff;
 	Item *entry;
 	Dir  *dir;
 };
@@ -90,9 +94,24 @@ help(void)
 	puts("Commands:\n"
              "N = [1-9]...: browse item N.\n"
              "0: browse previous item.\n"
+             "n: show next page.\n"
+             "p: show previous page.\n"
 	     "!: refetch failed item.\n"
              "^D, q: quit.\n"
              "h: this help.");
+}
+
+int
+termlines(void)
+{
+	struct winsize ws;
+
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) < 0) {
+		die("Could not get terminal resolution: %s",
+		    strerror(errno));
+	}
+
+	return ws.ws_row-1;
 }
 
 const char *
@@ -142,7 +161,10 @@ void
 display(Item *item)
 {
 	Item **items;
-	size_t i;
+	size_t i, lines, nitems;
+
+	if (item->type > '1')
+		return;
 
 	switch (item->type) {
 	case '0':
@@ -150,7 +172,10 @@ display(Item *item)
 		break;
 	case '1':
 		items = item->dir->items;
-		for (i = 0; i < item->dir->nitems; ++i) {
+		nitems = item->dir->nitems;
+		lines = item->printoff + termlines();
+
+		for (i = item->printoff; i < nitems && i < lines; ++i) {
 			printf("[%d]%.4s: %s\n", i+1,
 			       typedisplay(items[i]->type), items[i]->username);
 		}
@@ -213,6 +238,7 @@ molddiritem(char *raw)
 		item->selector = pickfield(&raw);
 		item->host = pickfield(&raw);
 		item->port = pickfield(&raw);
+		item->printoff = 0;
 		item->raw = NULL;
 		item->entry = NULL;
 		item->dir = NULL;
@@ -334,7 +360,7 @@ selectitem(Item *entry)
 {
 	char buf[BUFSIZ], nl;
 	Item *hole;
-	int item, nitems;
+	int item, nitems, lines;
 
 	nitems = entry->dir ? entry->dir->nitems : 0;
 
@@ -347,6 +373,22 @@ selectitem(Item *entry)
 		}
 		if (!strcmp(buf, "q\n"))
 			return NULL;
+
+		if (!strcmp(buf, "n\n")) {
+			lines = termlines();
+			if (lines < entry->dir->nitems - entry->printoff &&
+			    lines < (size_t)-1 - entry->printoff)
+				entry->printoff += lines;
+			return entry;
+		}
+		if (!strcmp(buf, "p\n")) {
+			lines = termlines();
+			if (lines <= entry->printoff)
+				entry->printoff -= lines;
+			else
+				entry->printoff = 0;
+			return entry;
+		}
 
 		if (!strcmp(buf, "!\n")) {
 			if (entry->raw)
@@ -445,6 +487,7 @@ moldentry(char *url)
 	entry->host = host;
 	entry->port = port;
 	entry->entry = entry;
+	entry->printoff = 0;
 	entry->raw = NULL;
 	entry->dir = NULL;
 
