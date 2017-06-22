@@ -162,6 +162,7 @@ display(Item *item)
 {
 	Item **items;
 	size_t i, lines, nitems;
+	int ndigits;
 
 	if (item->type > '1')
 		return;
@@ -174,9 +175,10 @@ display(Item *item)
 		items = item->dir->items;
 		nitems = item->dir->nitems;
 		lines = item->printoff + termlines();
+		ndigits = (nitems < 10) ? 1 : (nitems < 100) ? 2 : 3;
 
 		for (i = item->printoff; i < nitems && i < lines; ++i) {
-			printf("[%d]%.4s: %s\n", i+1,
+			printf("[%*d]%.4s: %s\n", ndigits, i+1,
 			       typedisplay(items[i]->type), items[i]->username);
 		}
 		break;
