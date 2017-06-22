@@ -353,6 +353,7 @@ dig(Item *entry, Item *item)
 	sock = connectto(item->host, item->port);
 	sendselector(sock, item->selector);
 	item->raw = getrawitem(sock);
+	close(sock);
 
 	if (!*item->raw) {    /* empty read */
 		free(item->raw);
