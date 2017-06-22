@@ -44,11 +44,13 @@ die(const char *fmt, ...)
 }
 
 void *
-xrealloc(void *m, const size_t n)
+xreallocarray(void *m, const size_t n, const size_t s)
 {
 	void *nm;
 
-	if (!(nm = realloc(m, n)))
+	if (s && n > (size_t)-1/s)
+		die("realloc: overflow");
+	if (!(nm = realloc(m, n * s)))
 		die("realloc: %s", strerror(errno));
 
 	return nm;
@@ -189,13 +191,12 @@ molddiritem(char *raw)
 {
 	Item *item, **items = NULL;
 	Dir *dir;
-	size_t n, nitems = 0;
+	size_t nitems = 0;
 
 	dir = xmalloc(sizeof(Dir));
 
 	while (strncmp(raw, ".\r\n", 3)) {
-		n = (++nitems) * sizeof(Item*);
-		items = xrealloc(items, n);
+		items = xreallocarray(items, ++nitems, sizeof(Item*));
 
 		item = xmalloc(sizeof(Item));
 		item->type = *raw++;
@@ -231,7 +232,7 @@ getrawitem(int sock)
 		buf += n;
 		if (bs <= 0) {
 			ns = is + BUFSIZ;
-			item = xrealloc(item, ns+1);
+			item = xreallocarray(item, ns+1, 1);
 			is = ns;
 			buf = item + is-BUFSIZ;
 			bs = BUFSIZ;
