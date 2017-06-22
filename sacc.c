@@ -282,15 +282,24 @@ getrawitem(int sock)
 	return raw;
 }
 
-int
+void
 sendselector(int sock, const char *selector)
 {
-	if (write(sock, selector, strlen(selector)) < 0)
-		die("Can't send message: %s", strerror(errno));
-	if (write(sock, "\r\n", strlen("\r\n")) < 0)
-		die("Can't send message: %s", strerror(errno));
+	char *msg, *p;
+	size_t ln;
+	ssize_t n;
 
-	return 1;
+	ln = strlen(selector) + 3;
+	msg = p = xmalloc(ln);
+	snprintf(msg, ln--, "%s\r\n", selector);
+
+	while ((n = write(sock, p, ln)) != -1 && n != 0) {
+		ln -= n;
+		p += n;
+	}
+	free(msg);
+	if (n == -1)
+		die("Can't send message: %s", strerror(errno));
 }
 
 int
