@@ -204,6 +204,7 @@ molddiritem(char *raw)
 		item->host = pickfield(&raw);
 		item->port = pickfield(&raw);
 		item->raw = NULL;
+		item->entry = NULL;
 		item->dir = NULL;
 
 		items[nitems-1] = item;
@@ -297,7 +298,8 @@ dig(Item *entry, Item *item)
 	if (item->raw)     /* already in cache */
 		return 1;
 
-	item->entry = entry;
+	if (!item->entry)
+		item->entry = entry;
 
 	if (item->type > '1') /* not supported */
 		return 0;
@@ -317,21 +319,24 @@ dig(Item *entry, Item *item)
 	return 1;
 }
 
-int
-menu(int items)
+Item *
+selectitem(Item *entry)
 {
 	char buf[BUFSIZ], nl;
-	int item;
+	Item *hole;
+	int item, nitems;
+
+	nitems = entry->dir ? entry->dir->nitems : 0;
 
 	do {
-		printf("%d items (h for help): ", items);
+		printf("%d items (h for help): ", nitems);
 
 		if (!fgets(buf, sizeof(buf), stdin)) {
 			putchar('\n');
-			return -1;
+			return NULL;
 		}
 		if (!strcmp(buf, "q\n"))
-			return -1;
+			return NULL;
 
 		item = -1;
 		if (!strcmp(buf, "h\n")) {
@@ -344,36 +349,28 @@ menu(int items)
 		nl = '\0';
 		if (sscanf(buf, "%d%c", &item, &nl) != 2 || nl != '\n')
 			item = -1;
-	} while (item < 0 || item > items);
+	} while (item < 0 || item > nitems);
 
-	return item;
+	if (item > 0)
+		return entry->dir->items[item-1];
+
+	return entry->entry;
 }
 
 void
 delve(Item *hole)
 {
-	Item *entry = NULL;
-	int items, item;
+	Item *entry = hole;
 
-	for (;;) {
+	while (hole) {
 		if (dig(entry, hole)) {
-			items = display(hole);
+			display(hole);
 		} else {
-			items = 0;
 			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
 			                hole->port, hole->type, hole->selector);
 		}
-
-		item = menu(items);
-
-		if (item > 0) {
-			entry = hole;
-			hole = hole->dir->items[item-1];
-		} else if (item < 0) {
-			return;
-		} else if (hole->entry) {
-			hole = hole->entry;
-		}
+		entry = hole;
+		hole = selectitem(hole);
 	}
 }
 
@@ -428,16 +425,17 @@ parseurl(const char *URL)
 		die("Gopher type not supported: %s (%s)",
 		    typedisplay(gopherpath[0]), URL);
 
-	hole = xmalloc(sizeof(Item));
-	hole->raw = url;
-	hole->type = gopherpath[0];
-	hole->username = hole->selector = ++gopherpath;
-	hole->host = host;
-	hole->port = port;
-	hole->entry = NULL;
-	hole->dir = NULL;
 
-	return hole;
+	entry = xmalloc(sizeof(Item));
+	entry->raw = url;
+	entry->type = gopherpath[0];
+	entry->username = entry->selector = ++gopherpath;
+	entry->host = host;
+	entry->port = port;
+	entry->entry = entry;
+	entry->dir = NULL;
+
+	return entry;
 }
 
 int
