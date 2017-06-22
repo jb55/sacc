@@ -306,8 +306,11 @@ dig(Item *entry, Item *item)
 	sendselector(sock, item->selector);
 	item->raw = getrawitem(sock);
 
-	if (!*item->raw)      /* empty read */
+	if (!*item->raw) {    /* empty read */
+		free(item->raw);
+		item->raw = NULL;
 		return 0;
+	}
 
 	if (item->type == '1')
 		item->dir = molddiritem(item->raw);
