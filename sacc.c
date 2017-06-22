@@ -375,17 +375,15 @@ delve(Item *hole)
 }
 
 Item *
-parseurl(const char *URL)
+moldentry(char *url)
 {
-	Item *hole;
-	char *p, *url, *host, *port = "gopher", *gopherpath = "1";
+	Item *entry;
+	char *p, *host = url, *port = "gopher", *gopherpath = "1";
 	int parsed, ipv6;
-
-	host = url = xstrdup(URL);
 
 	if (p = strstr(url, "://")) {
 		if (strncmp(url, "gopher", p - url))
-			die("Protocol not supported: %.*s (%s)", p - url, url, URL);
+			die("Protocol not supported: %.*s", p - url, url);
 		host = p + 3;
 	}
 
@@ -419,20 +417,19 @@ parseurl(const char *URL)
 	}
 
 	if (*host == '\0' || *port == '\0' || ipv6)
-		die("Can't parse url: %s", URL);
+		die("Can't parse url");
 
 	if (gopherpath[0] > '1')
-		die("Gopher type not supported: %s (%s)",
-		    typedisplay(gopherpath[0]), URL);
-
+		die("Gopher type not supported: %s",
+		    typedisplay(gopherpath[0]));
 
 	entry = xmalloc(sizeof(Item));
-	entry->raw = url;
 	entry->type = gopherpath[0];
 	entry->username = entry->selector = ++gopherpath;
 	entry->host = host;
 	entry->port = port;
 	entry->entry = entry;
+	entry->raw = NULL;
 	entry->dir = NULL;
 
 	return entry;
@@ -441,15 +438,19 @@ parseurl(const char *URL)
 int
 main(int argc, char *argv[])
 {
-	Item *hole;
+	Item *entry;
+	char *url;
 
 	if (argc != 2)
 		usage();
 
-	hole = parseurl(argv[1]);
+	url = xstrdup(argv[1]);
 
-	delve(hole);
-	free(hole); /* TODO free all tree recursively */
+	entry = moldentry(url);
+	delve(entry);
+
+	free(entry); /* TODO free all tree recursively */
+	free(url);
 
 	return 0;
 }
