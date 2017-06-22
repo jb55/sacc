@@ -10,6 +10,8 @@
 #include <sys/types.h>
 
 typedef struct item Item;
+typedef struct dir Dir;
+
 struct item {
 	char type;
 	char *username;
@@ -18,13 +20,13 @@ struct item {
 	char *port;
 	char *raw;
 	Item *entry;
-	void *target;
+	Dir  *dir;
 };
 
-typedef struct {
-	int nitems;
-	Item *items;
-} Menu;
+struct dir {
+	Item **items;
+	size_t nitems;
+};
 
 static void die(const char *, ...);
 
@@ -133,26 +135,24 @@ typedisplay(char t)
 	}
 }
 
-int
+void
 display(Item *item)
 {
-	Item *itm;
 	Item **items;
-	int i = 0;
+	size_t i;
 
 	switch (item->type) {
 	case '0':
 		puts(item->target);
 		break;
 	case '1':
-		items = (Item **)item->target;
-		for (; items[i]; ++i)
-			printf("[%d]%.4s: %s\n", i+1, typedisplay(items[i]->type),
-			       items[i]->username);
+		items = item->dir->items;
+		for (i = 0; i < item->dir->nitems; ++i) {
+			printf("[%d]%.4s: %s\n", i+1,
+			       typedisplay(items[i]->type), items[i]->username);
+		}
 		break;
 	}
-
-	return i;
 }
 
 char *
@@ -184,15 +184,17 @@ pickfield(char **s)
 	return f;
 }
 
-void *
-parsediritem(char *raw)
+Dir *
+molddiritem(char *raw)
 {
 	Item *item, **items = NULL;
-	int nitems = 0;
-	size_t n;
+	Dir *dir;
+	size_t n, nitems = 0;
+
+	dir = xmalloc(sizeof(Dir));
 
 	while (strncmp(raw, ".\r\n", 3)) {
-		n = (++nitems+1) * sizeof(Item*);
+		n = (++nitems) * sizeof(Item*);
 		items = xrealloc(items, n);
 
 		item = xmalloc(sizeof(Item));
@@ -201,13 +203,15 @@ parsediritem(char *raw)
 		item->selector = pickfield(&raw);
 		item->host = pickfield(&raw);
 		item->port = pickfield(&raw);
-		item->target = NULL;
+		item->dir = NULL;
 
 		items[nitems-1] = item;
 	}
-	items[nitems] = NULL;
 
-	return items;
+	dir->items = items;
+	dir->nitems = nitems;
+
+	return dir;
 }
 
 char *
@@ -306,8 +310,8 @@ dig(Item *entry, Item *item)
 
 	if (item->type == '0')
 		item->target = item->raw;
-	else if (item->type == '1')
-		item->target = parsediritem(item->raw);
+	if (item->type == '1')
+		item->dir = molddiritem(item->raw);
 	return 1;
 }
 
@@ -362,7 +366,7 @@ delve(Item *hole)
 
 		if (item > 0) {
 			entry = hole;
-			hole = ((Item **)hole->target)[item-1];
+			hole = hole->dir->items[item-1];
 		} else if (item < 0) {
 			return;
 		} else if (hole->entry) {
@@ -428,7 +432,8 @@ parseurl(const char *URL)
 	hole->username = hole->selector = ++gopherpath;
 	hole->host = host;
 	hole->port = port;
-	hole->entry = hole->target = NULL;
+	hole->entry = NULL;
+	hole->dir = NULL;
 
 	return hole;
 }
