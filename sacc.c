@@ -220,30 +220,29 @@ molddiritem(char *raw)
 char *
 getrawitem(int sock)
 {
-	char *item, *buf;
-	size_t is, bs, ns;
+	char *raw, *buf;
+	size_t bn, bs;
 	ssize_t n;
 
-	is = bs = BUFSIZ;
-	item = buf = xmalloc(BUFSIZ+1);
+	raw = buf = NULL;
+	bn = bs = n = 0;
 
-	while ((n = read(sock, buf, bs)) > 0) {
+	do {
 		bs -= n;
 		buf += n;
-		if (bs <= 0) {
-			ns = is + BUFSIZ;
-			item = xreallocarray(item, ns+1, 1);
-			is = ns;
-			buf = item + is-BUFSIZ;
+		if (bs <= 1) {
+			raw = xreallocarray(raw, ++bn, BUFSIZ);
+			buf = raw + (bn-1) * BUFSIZ;
 			bs = BUFSIZ;
 		}
-	}
+	} while ((n = read(sock, buf, bs)) > 0);
+
 	if (n < 0)
 		die("Can't read socket: %s", strerror(errno));
 
 	*buf = '\0';
 
-	return item;
+	return raw;
 }
 
 int
