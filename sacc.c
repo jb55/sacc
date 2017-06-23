@@ -262,9 +262,11 @@ molddiritem(char *raw)
 
 	for (crlf = raw, nitems = 0; p = strstr(crlf, "\r\n"); ++nitems)
 		crlf = p+2;
-	if (--nitems < 1)
+	if (nitems <= 1)
 		return NULL;
-	if (strcmp(crlf-3, ".\r\n"))
+	if (!strcmp(crlf-3, ".\r\n"))
+		--nitems;
+	else
 		fprintf(stderr, "Parsing error: missing .\\r\\n last line\n");
 
 	dir = xmalloc(sizeof(Dir));
