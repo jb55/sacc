@@ -50,6 +50,10 @@ xreallocarray(void *m, const size_t n, const size_t s)
 {
 	void *nm;
 
+	if (n == 0 || s == 0) {
+		free(m);
+		return NULL;
+	}
 	if (s && n > (size_t)-1/s)
 		die("realloc: overflow");
 	if (!(nm = realloc(m, n * s)))
