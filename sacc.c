@@ -189,32 +189,61 @@ display(Item *item)
 }
 
 char *
-pickfield(char **s)
+pickfield(char **raw, char sep)
 {
-	char *c, *f = *s;
+	char *c, *f = *raw;
 
-	/* loop until we reach the end of the string, or a tab, or CRLF */
-	for (c = *s; *c; ++c) {
+	for (c = *raw; *c != sep; ++c) {
 		switch (*c) {
 		case '\t':
-			break;
-		case '\r': /* FALLTHROUGH */
-			if (*(c+1) == '\n') {
-				*c++ = '\0';
-				break;
-			}
+			if (sep == '\r')
+				*c = '\0';
+		case '\n':
+		case '\r':
+		case '\0':
+			return NULL;
 		default:
 			continue;
 		}
 		break;
 	}
 
-	if (!*c)
-		die("Can't parse directory item: %s", f);
 	*c = '\0';
-	*s = c+1;
+	*raw = c+1;
 
 	return f;
+}
+
+Item *
+molditem(char **raw)
+{
+	Item *item;
+	char type, *username, *selector, *host, *port;
+
+	if (!*raw)
+		return NULL;
+
+	if (!(type = *raw[0]++) ||
+	    !(username = pickfield(raw, '\t')) ||
+	    !(selector = pickfield(raw, '\t')) ||
+	    !(host = pickfield(raw, '\t')) ||
+	    !(port = pickfield(raw, '\r')) ||
+	    *raw[0]++ != '\n')
+		return NULL;
+
+	item = xmalloc(sizeof(Item));
+
+	item->type = type;
+	item->username = username;
+	item->selector = selector;
+	item->host = host;
+	item->port = port;
+	item->raw = NULL;
+	item->dir = NULL;
+	item->entry = NULL;
+	item->printoff = 0;
+
+	return item;
 }
 
 Dir *
@@ -230,26 +259,24 @@ molddiritem(char *raw)
 	if (--nitems < 1)
 		return NULL;
 	if (strcmp(crlf-3, ".\r\n"))
-		return NULL;
+		fprintf(stderr, "Parsing error: missing .\\r\\n last line\n");
 
 	dir = xmalloc(sizeof(Dir));
 	items = xreallocarray(items, nitems, sizeof(Item*));
 
 	for (i = 0; i < nitems; ++i) {
-		item = xmalloc(sizeof(Item));
-
-		item->type = *raw++;
-		item->username = pickfield(&raw);
-		item->selector = pickfield(&raw);
-		item->host = pickfield(&raw);
-		item->port = pickfield(&raw);
-		item->printoff = 0;
-		item->raw = NULL;
-		item->entry = NULL;
-		item->dir = NULL;
-
-		items[i] = item;
+		if (item = molditem(&raw)) {
+			items[i] = item;
+		} else {
+			fprintf(stderr, "Parsing error: dir entity: %d\n", i+1);
+			items = xreallocarray(items, i, sizeof(Item*));
+			nitems = i;
+			break;
+		}
 	}
+
+	if (!items)
+		return NULL;
 
 	dir->items = items;
 	dir->nitems = nitems;
@@ -344,29 +371,35 @@ dig(Item *entry, Item *item)
 {
 	int sock;
 
-	if (item->raw)     /* already in cache */
+	if (item->raw) /* already in cache */
 		return 1;
 
 	if (!item->entry)
 		item->entry = entry;
 
-	if (item->type > '1') /* not supported */
+	if (item->type > '1') {
+		fprintf(stderr, "Type %c not supported\n", item->type);
 		return 0;
+	}
 
 	sock = connectto(item->host, item->port);
 	sendselector(sock, item->selector);
 	item->raw = getrawitem(sock);
 	close(sock);
 
-	if (!*item->raw) {    /* empty read */
+	if (!*item->raw) {
+		fputs("Empty response from server\n", stderr);
 		free(item->raw);
 		item->raw = NULL;
 		return 0;
 	}
 
-	if (item->type == '1' &&
-	    !(item->dir = molddiritem(item->raw)))
-		return 0;
+	if (item->type == '1') {
+		if (!(item->dir = molddiritem(item->raw))) {
+			fputs("Couldn't parse dir item\n", stderr);
+			return 0;
+		}
+	}
 	return 1;
 }
 
