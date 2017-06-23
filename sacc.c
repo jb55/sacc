@@ -178,11 +178,15 @@ display(Item *item)
 		ndigits = (nitems < 10) ? 1 : (nitems < 100) ? 2 : 3;
 
 		for (i = item->printoff; i < nitems && i < lines; ++i) {
-			item = items[i];
-			printf("%*d %-4s%c %s\n", ndigits, i+1,
-			       item->type != 'i' ? typedisplay(item->type) : "",
-			       item->type > '1' ? '|' : '+',
-			       items[i]->username);
+			if (item = items[i]) {
+				printf("%*d %-4s%c %s\n", ndigits, i+1,
+				       item->type != 'i' ?
+				       typedisplay(item->type) : "",
+				       item->type > '1' ? '|' : '+',
+				       items[i]->username);
+			} else {
+				printf("%*d  !! |\n", ndigits, i+1);
+			}
 		}
 		break;
 	}
