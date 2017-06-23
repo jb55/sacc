@@ -32,9 +32,7 @@ struct dir {
 	size_t nitems;
 };
 
-static void die(const char *, ...);
-
-void
+static void
 die(const char *fmt, ...)
 {
 	va_list arg;
@@ -47,7 +45,7 @@ die(const char *fmt, ...)
 	exit(1);
 }
 
-void *
+static void *
 xreallocarray(void *m, const size_t n, const size_t s)
 {
 	void *nm;
@@ -60,7 +58,7 @@ xreallocarray(void *m, const size_t n, const size_t s)
 	return nm;
 }
 
-void *
+static void *
 xmalloc(const size_t n)
 {
 	void *m = malloc(n);
@@ -71,7 +69,7 @@ xmalloc(const size_t n)
 	return m;
 }
 
-char *
+static char *
 xstrdup(const char *str)
 {
 	char *s;
@@ -82,13 +80,13 @@ xstrdup(const char *str)
 	return s;
 }
 
-void
+static void
 usage(void)
 {
 	die("usage: sacc URL");
 }
 
-void
+static void
 help(void)
 {
 	puts("Commands:\n"
@@ -101,7 +99,7 @@ help(void)
              "h: this help.");
 }
 
-int
+static int
 termlines(void)
 {
 	struct winsize ws;
@@ -114,7 +112,7 @@ termlines(void)
 	return ws.ws_row-1;
 }
 
-const char *
+static const char *
 typedisplay(char t)
 {
 	switch (t) {
@@ -157,7 +155,7 @@ typedisplay(char t)
 	}
 }
 
-void
+static void
 display(Item *item)
 {
 	Item **items;
@@ -192,7 +190,7 @@ display(Item *item)
 	}
 }
 
-char *
+static char *
 pickfield(char **raw, char sep)
 {
 	char *c, *f = *raw;
@@ -218,7 +216,7 @@ pickfield(char **raw, char sep)
 	return f;
 }
 
-Item *
+static Item *
 molditem(char **raw)
 {
 	Item *item;
@@ -250,7 +248,7 @@ molditem(char **raw)
 	return item;
 }
 
-Dir *
+static Dir *
 molddiritem(char *raw)
 {
 	Item *item, **items = NULL;
@@ -288,7 +286,7 @@ molddiritem(char *raw)
 	return dir;
 }
 
-char *
+static char *
 getrawitem(int sock)
 {
 	char *raw, *buf;
@@ -316,7 +314,7 @@ getrawitem(int sock)
 	return raw;
 }
 
-void
+static void
 sendselector(int sock, const char *selector)
 {
 	char *msg, *p;
@@ -336,7 +334,7 @@ sendselector(int sock, const char *selector)
 		die("Can't send message: %s", strerror(errno));
 }
 
-int
+static int
 connectto(const char *host, const char *port)
 {
 	static const struct addrinfo hints = {
@@ -370,7 +368,7 @@ connectto(const char *host, const char *port)
 	return sock;
 }
 
-int
+static int
 dig(Item *entry, Item *item)
 {
 	int sock;
@@ -407,7 +405,7 @@ dig(Item *entry, Item *item)
 	return 1;
 }
 
-Item *
+static Item *
 selectitem(Item *entry)
 {
 	char buf[BUFSIZ], nl;
@@ -467,7 +465,7 @@ selectitem(Item *entry)
 	return entry->entry;
 }
 
-void
+static void
 delve(Item *hole)
 {
 	Item *entry = hole;
@@ -484,7 +482,7 @@ delve(Item *hole)
 	}
 }
 
-Item *
+static Item *
 moldentry(char *url)
 {
 	Item *entry;
