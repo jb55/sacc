@@ -83,6 +83,7 @@ display(Item *item)
 	}
 
 	putp(tparm(restore_cursor));
+	fflush(stdout);
 }
 
 static void
@@ -133,6 +134,7 @@ movecurline(Item *item, int l)
 	putp(tparm(enter_standout_mode));
 	printitem(item->dir->items[curline]);
 	putp(tparm(exit_standout_mode));
+	fflush(stdout);
 }
 
 Item *

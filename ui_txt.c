@@ -83,6 +83,7 @@ selectitem(Item *entry)
 
 	do {
 		printf("%d items (h for help): ", nitems);
+		fflush(stdout);
 
 		if (!fgets(buf, sizeof(buf), stdin)) {
 			putchar('\n');
