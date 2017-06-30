@@ -5,11 +5,15 @@
 include config.mk
 
 BIN = sacc
+OBJ = $(BIN:=.o) ui_$(UI).o
 
 all: $(BIN)
 
+$(BIN): config.mk $(OBJ)
+	$(CC) $(OBJ) $(SACCLDFLAGS) -o $@
+
 clean:
-	rm -f $(BIN)
+	rm -f $(BIN) $(OBJ)
 
 install:
 	mkdir -p $(PREFIX)/bin/
