@@ -170,6 +170,7 @@ molditem(char **raw)
 	item->dir = NULL;
 	item->entry = NULL;
 	item->printoff = 0;
+	item->curline = 0;
 
 	return item;
 }
@@ -406,6 +407,7 @@ moldentry(char *url)
 	entry->port = port;
 	entry->entry = entry;
 	entry->printoff = 0;
+	entry->curline = 0;
 	entry->raw = NULL;
 	entry->dir = NULL;
 

@@ -9,6 +9,7 @@ struct item {
 	char *port;
 	char *raw;
 	size_t printoff;
+	size_t curline;
 	Item *entry;
 	Dir  *dir;
 };
