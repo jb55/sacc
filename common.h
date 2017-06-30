@@ -22,3 +22,5 @@ void die(const char *fmt, ...);
 void display(Item *item);
 Item *selectitem(Item *entry);
 const char *typedisplay(char t);
+void uicleanup(void);
+void uisetup(void);

@@ -8,6 +8,11 @@
 #include "common.h"
 
 void
+uisetup(void) { return; }
+void
+uicleanup(void) { return; }
+
+void
 help(void)
 {
 	puts("Commands:\n"

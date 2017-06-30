@@ -12,6 +12,9 @@
 
 #include "common.h"
 
+static char *mainurl;
+static Item *mainentry;
+
 void
 die(const char *fmt, ...)
 {
@@ -409,22 +412,33 @@ moldentry(char *url)
 	return entry;
 }
 
+static void
+cleanup(void)
+{
+	free(mainentry); /* TODO free all tree recursively */
+	free(mainurl);
+	uicleanup();
+}
+
+static void
+setup(void)
+{
+	atexit(cleanup);
+	uisetup();
+}
+
 int
 main(int argc, char *argv[])
 {
-	Item *entry;
-	char *url;
-
 	if (argc != 2)
 		usage();
 
-	url = xstrdup(argv[1]);
+	setup();
 
-	entry = moldentry(url);
-	delve(entry);
+	mainurl = xstrdup(argv[1]);
 
-	free(entry); /* TODO free all tree recursively */
-	free(url);
+	mainentry = moldentry(mainurl);
+	delve(mainentry);
 
-	return 0;
+	exit(0);
 }
