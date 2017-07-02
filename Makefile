@@ -15,9 +15,9 @@ $(BIN): config.mk $(OBJ)
 clean:
 	rm -f $(BIN) $(OBJ)
 
-install:
+install: $(BIN)
 	mkdir -p $(PREFIX)/bin/
-	cp $(BIN) $(PREFIX)/bin/
+	cp -f $(BIN) $(PREFIX)/bin/
 	chmod 555 $(PREFIX)/bin/$(BIN)
 
 uninstall:
