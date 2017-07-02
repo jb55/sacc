@@ -7,6 +7,14 @@
 #include "common.h"
 
 static struct termios tsave;
+/* navigation keys */
+#define ui_lndown	'j' /* move one line down */
+#define ui_lnup		'k' /* move one line up */
+#define ui_pgnext	'l' /* view highlighted item */
+#define ui_pgprev	'h' /* view previous item */
+#define ui_fetch	'L' /* refetch current item */
+#define ui_help		'?' /* display help */
+#define ui_quit		'q' /* exit sacc */
 
 void
 uisetup(void)
@@ -140,25 +148,25 @@ selectitem(Item *entry)
 
 	for (;;) {
 		switch (c = getchar()) {
-		case 'b':
+		case ui_pgprev:
 			return entry->entry;
-		case 'g':
+		case ui_pgnext:
 			if (entry->dir->items[entry->curline]->type < '2')
 				return entry->dir->items[entry->curline];
 			continue;
-		case 'n':
+		case ui_lndown:
 			movecurline(entry, 1);
 			continue;
-		case 'p':
+		case ui_lnup:
 			movecurline(entry, -1);
 			continue;
-		case 'q':
+		case ui_quit:
 			return NULL;
-		case '!':
+		case ui_fetch:
 			if (entry->raw)
 				continue;
 			return entry;
-		case 'h': /* FALLTHROUGH */
+		case ui_help: /* FALLTHROUGH */
 			help();
 		default:
 			continue;
