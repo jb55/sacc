@@ -45,31 +45,24 @@ display(Item *item)
 	size_t i, lines, nitems;
 	int ndigits;
 
-	if (item->type > '1')
+	if (item->type != '1')
 		return;
 
-	switch (item->type) {
-	case '0':
-		puts(item->raw);
-		break;
-	case '1':
-		items = item->dir->items;
-		nitems = item->dir->nitems;
-		lines = item->printoff + termlines();
-		ndigits = (nitems < 10) ? 1 : (nitems < 100) ? 2 : 3;
+	items = item->dir->items;
+	nitems = item->dir->nitems;
+	lines = item->printoff + termlines();
+	ndigits = (nitems < 10) ? 1 : (nitems < 100) ? 2 : 3;
 
-		for (i = item->printoff; i < nitems && i < lines; ++i) {
-			if (item = items[i]) {
-				printf("%*d %-4s%c %s\n", ndigits, i+1,
-				       item->type != 'i' ?
-				       typedisplay(item->type) : "",
-				       item->type > '1' ? '|' : '+',
-				       items[i]->username);
-			} else {
-				printf("%*d  !! |\n", ndigits, i+1);
-			}
+	for (i = item->printoff; i < nitems && i < lines; ++i) {
+		if (item = items[i]) {
+			printf("%*d %-4s%c %s\n", ndigits, i+1,
+			       item->type != 'i' ?
+			       typedisplay(item->type) : "",
+			       item->type > '1' ? '|' : '+',
+			       items[i]->username);
+		} else {
+			printf("%*d  !! |\n", ndigits, i+1);
 		}
-		break;
 	}
 }
 

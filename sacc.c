@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #include "common.h"
 
@@ -114,6 +115,28 @@ typedisplay(char t)
 	default:
 		return "WRNG";
 	}
+}
+
+static void
+displaytextitem(Item *item)
+{
+	FILE *pagerin;
+	int pid, wpid;
+
+	uicleanup();
+	switch (pid = fork()) {
+	case -1:
+		fprintf(stderr, "Couldn't fork.\n");
+		return;
+	case 0:
+		pagerin = popen("$PAGER", "we");
+		fputs(item->raw, pagerin);
+		exit(pclose(pagerin));
+	default:
+		while ((wpid = wait(NULL)) >= 0 && wpid != pid)
+			;
+	}
+	uisetup();
 }
 
 static char *
@@ -303,7 +326,7 @@ dig(Item *entry, Item *item)
 	int sock;
 
 	if (item->raw) /* already in cache */
-		return 1;
+		return item->type;
 
 	if (!item->entry)
 		item->entry = entry;
@@ -331,7 +354,7 @@ dig(Item *entry, Item *item)
 			return 0;
 		}
 	}
-	return 1;
+	return item->type;
 }
 
 static void
@@ -340,12 +363,21 @@ delve(Item *hole)
 	Item *entry = hole;
 
 	while (hole) {
-		if (dig(entry, hole)) {
-			display(hole);
-		} else {
+		switch (dig(entry, hole)) {
+		case '0':
+			displaytextitem(hole);
+			hole = entry;
+			break;
+		case '1':
+			break;
+		default:
 			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
 			                hole->port, hole->type, hole->selector);
+			hole = entry;
+			break;
 		}
+
+		display(hole);
 		entry = hole;
 		hole = selectitem(hole);
 	}

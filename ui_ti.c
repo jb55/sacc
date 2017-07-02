@@ -48,38 +48,31 @@ display(Item *item)
 	Item **items;
 	size_t i, curln, lastln, nitems, printoff;
 
-	if (item->type > '1')
+	if (item->type != '1')
 		return;
 
 	putp(tparm(clear_screen));
 	putp(tparm(save_cursor));
 
-	switch (item->type) {
-	case '0':
-		puts(item->raw);
-		break;
-	case '1':
-		items = item->dir->items;
-		nitems = item->dir->nitems;
-		printoff = item->printoff;
-		curln = item->curline;
-		lastln = printoff + lines;
+	items = item->dir->items;
+	nitems = item->dir->nitems;
+	printoff = item->printoff;
+	curln = item->curline;
+	lastln = printoff + lines;
 
-		for (i = printoff; i < nitems && i < lastln; ++i) {
-			if (item = items[i]) {
-				if (i != printoff)
-					putp(tparm(cursor_down));
-				if (i == curln) {
-					putp(tparm(save_cursor));
-					putp(tparm(enter_standout_mode));
-				}
-				printitem(item);
-				putp(tparm(column_address, 0));
-				if (i == curln)
-					putp(tparm(exit_standout_mode));
+	for (i = printoff; i < nitems && i < lastln; ++i) {
+		if (item = items[i]) {
+			if (i != printoff)
+				putp(tparm(cursor_down));
+			if (i == curln) {
+				putp(tparm(save_cursor));
+				putp(tparm(enter_standout_mode));
 			}
+			printitem(item);
+			putp(tparm(column_address, 0));
+			if (i == curln)
+				putp(tparm(exit_standout_mode));
 		}
-		break;
 	}
 
 	putp(tparm(restore_cursor));
