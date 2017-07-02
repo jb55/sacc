@@ -26,6 +26,7 @@ uicleanup(void)
 {
 	tcsetattr(0, TCSAFLUSH, &tsave);
 	putp(tparm(clear_screen));
+	fflush(stdout);
 }
 
 static void
