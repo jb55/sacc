@@ -8,13 +8,13 @@
 
 static struct termios tsave;
 /* navigation keys */
-#define ui_lndown	'j' /* move one line down */
-#define ui_lnup		'k' /* move one line up */
-#define ui_pgnext	'l' /* view highlighted item */
-#define ui_pgprev	'h' /* view previous item */
-#define ui_fetch	'L' /* refetch current item */
-#define ui_help		'?' /* display help */
-#define ui_quit		'q' /* exit sacc */
+#define _key_lndown	'j' /* move one line down */
+#define _key_lnup	'k' /* move one line up */
+#define _key_pgnext	'l' /* view highlighted item */
+#define _key_pgprev	'h' /* view previous item */
+#define _key_fetch	'L' /* refetch current item */
+#define _key_help	'?' /* display help */
+#define _key_quit	'q' /* exit sacc */
 
 void
 uisetup(void)
@@ -142,31 +142,58 @@ movecurline(Item *item, int l)
 Item *
 selectitem(Item *entry)
 {
-	char c;
 	Item *hole;
 	int item, nitems;
 
 	for (;;) {
-		switch (c = getchar()) {
-		case ui_pgprev:
+		switch (getchar()) {
+		case 0x1b: /* ESC */
+			switch (getchar()) {
+			case 0x1b:
+				goto quit;
+			case '[':
+				break;
+			default:
+				continue;
+			}
+			switch (getchar()) {
+			case 'A':
+				goto lnup;
+			case 'B':
+				goto lndown;
+			case 'C':
+				goto pgnext;
+			case 'D':
+				goto pgprev;
+			case 0x1b:
+				goto quit;
+			}
+			continue;
+		case _key_pgprev:
+		pgprev:
 			return entry->entry;
-		case ui_pgnext:
+		case _key_pgnext:
+		case '\r':
+		pgnext:
 			if (entry->dir->items[entry->curline]->type < '2')
 				return entry->dir->items[entry->curline];
 			continue;
-		case ui_lndown:
+		case _key_lndown:
+		lndown:
 			movecurline(entry, 1);
 			continue;
-		case ui_lnup:
+		case _key_lnup:
+		lnup:
 			movecurline(entry, -1);
 			continue;
-		case ui_quit:
+		case _key_quit:
+		quit:
 			return NULL;
-		case ui_fetch:
+		case _key_fetch:
 			if (entry->raw)
 				continue;
 			return entry;
-		case ui_help: /* FALLTHROUGH */
+		case _key_help: /* FALLTHROUGH */
 			help();
 		default:
 			continue;
