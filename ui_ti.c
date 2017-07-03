@@ -27,6 +27,9 @@ uisetup(void)
 	tcsetattr(0, TCSAFLUSH, &traw);
 
 	setupterm(NULL, 1, NULL);
+	putp(tparm(save_cursor));
+	putp(tparm(change_scroll_region, 0, lines-2));
+	putp(tparm(restore_cursor));
 }
 
 void
@@ -51,23 +54,40 @@ help(void)
 	return;
 }
 
-void
-display(Item *item)
+static void
+displaystatus(Item *item)
 {
-	Item **items;
+	size_t nitems = item->dir->nitems;
+
+	putp(tparm(save_cursor));
+
+	putp(tparm(cursor_address, lines-1, 0));
+	putp(tparm(enter_standout_mode));
+	printf("%3d%%| %s:%s%s", nitems <= lines ? 100 :
+	       ((unsigned long long)item->printoff + lines) * 100 / nitems,
+	       item->host, item->port, item->selector);
+	putp(tparm(exit_standout_mode));
+
+	putp(tparm(restore_cursor));
+}
+
+void
+display(Item *entry)
+{
+	Item *item, **items;
 	size_t i, curln, lastln, nitems, printoff;
 
-	if (item->type != '1')
+	if (entry->type != '1')
 		return;
 
 	putp(tparm(clear_screen));
 	putp(tparm(save_cursor));
 
-	items = item->dir->items;
-	nitems = item->dir->nitems;
-	printoff = item->printoff;
-	curln = item->curline;
-	lastln = printoff + lines;
+	items = entry->dir->items;
+	nitems = entry->dir->nitems;
+	printoff = entry->printoff;
+	curln = entry->curline;
+	lastln = printoff + lines-1; /* one off for status bar */
 
 	for (i = printoff; i < nitems && i < lastln; ++i) {
 		if (item = items[i]) {
@@ -85,6 +105,7 @@ display(Item *item)
 	}
 
 	putp(tparm(restore_cursor));
+	displaystatus(entry);
 	fflush(stdout);
 }
 
@@ -93,6 +114,7 @@ movecurline(Item *item, int l)
 {
 	size_t nitems;
 	ssize_t curline, offline;
+	int plines = lines-2;
 
 	if (item->dir == NULL)
 		return;
@@ -106,11 +128,11 @@ movecurline(Item *item, int l)
 	item->curline = curline;
 
 	if (l > 0) {
-		offline = item->printoff + lines;
-		if (curline - item->printoff >= lines / 2 && offline < nitems) {
+		offline = item->printoff + lines-1;
+		if (curline - item->printoff >= plines / 2 && offline < nitems) {
 			putp(tparm(save_cursor));
 
-			putp(tparm(cursor_address, lines, 0));
+			putp(tparm(cursor_address, plines, 0));
 			putp(tparm(scroll_forward));
 			printitem(item->dir->items[offline]);
 
@@ -119,7 +141,7 @@ movecurline(Item *item, int l)
 		}
 	} else {
 		offline = item->printoff + l;
-		if (curline - offline <= lines / 2 && offline >= 0) {
+		if (curline - offline <= plines / 2 && offline >= 0) {
 			putp(tparm(save_cursor));
 
 			putp(tparm(cursor_address, 0, 0));
@@ -136,6 +158,7 @@ movecurline(Item *item, int l)
 	putp(tparm(enter_standout_mode));
 	printitem(item->dir->items[curline]);
 	putp(tparm(exit_standout_mode));
+	displaystatus(item);
 	fflush(stdout);
 }
 

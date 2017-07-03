@@ -7,10 +7,30 @@
 
 #include "common.h"
 
+int lines;
+
+static int
+termlines(void)
+{
+	struct winsize ws;
+
+	if (ioctl(1, TIOCGWINSZ, &ws) < 0) {
+		die("Could not get terminal resolution: %s",
+		    strerror(errno));
+	}
+
+	return ws.ws_row-1; /* one off for status bar */
+}
+
 void
-uisetup(void) { return; }
+uisetup(void) {
+	lines = termlines();
+}
+
 void
-uicleanup(void) { return; }
+uicleanup(void) {
+	return;
+}
 
 void
 help(void)
@@ -26,44 +46,49 @@ help(void)
 }
 
 static int
-termlines(void)
+ndigits(size_t n)
 {
-	struct winsize ws;
+	return (n < 10) ? 1 : (n < 100) ? 2 : 3;
+}
 
-	if (ioctl(1, TIOCGWINSZ, &ws) < 0) {
-		die("Could not get terminal resolution: %s",
-		    strerror(errno));
-	}
+static void
+printstatus(Item *item)
+{
+	size_t nitems = item->dir->nitems;
 
-	return ws.ws_row-1;
+	printf("%3d%%%*c %s:%s%s (h for help): ", nitems <= lines ? 100 :
+	       ((unsigned long long)item->printoff + lines) * 100 / nitems,
+	       ndigits(nitems)+2, '|', item->host, item->port, item->selector);
 }
 
 void
-display(Item *item)
+display(Item *entry)
 {
-	Item **items;
+	Item *item, **items;
 	size_t i, lines, nitems;
-	int ndigits;
+	int nd;
 
-	if (item->type != '1')
+	if (entry->type != '1')
 		return;
 
-	items = item->dir->items;
-	nitems = item->dir->nitems;
-	lines = item->printoff + termlines();
-	ndigits = (nitems < 10) ? 1 : (nitems < 100) ? 2 : 3;
+	items = entry->dir->items;
+	nitems = entry->dir->nitems;
+	lines = entry->printoff + termlines();
+	nd = ndigits(nitems);
 
-	for (i = item->printoff; i < nitems && i < lines; ++i) {
+	for (i = entry->printoff; i < nitems && i < lines; ++i) {
 		if (item = items[i]) {
-			printf("%*d %-4s%c %s\n", ndigits, i+1,
+			printf("%*zu %-4s%c %s\n", nd, i+1,
 			       item->type != 'i' ?
 			       typedisplay(item->type) : "",
 			       item->type > '1' ? '|' : '+',
 			       items[i]->username);
 		} else {
-			printf("%*d  !! |\n", ndigits, i+1);
+			printf("%*zu  !! |\n", nd, i+1);
 		}
 	}
+
+	fflush(stdout);
 }
 
 Item *
@@ -75,7 +100,7 @@ selectitem(Item *entry)
 	nitems = entry->dir ? entry->dir->nitems : 0;
 
 	do {
-		printf("%d items (h for help): ", nitems);
+		printstatus(entry);
 		fflush(stdout);
 
 		if (!fgets(buf, sizeof(buf), stdin)) {
