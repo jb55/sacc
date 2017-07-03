@@ -9,7 +9,7 @@ OBJ = $(BIN:=.o) ui_$(UI).o
 
 all: $(BIN)
 
-$(BIN): config.mk $(OBJ)
+$(BIN): config.mk common.h $(OBJ)
 	$(CC) $(OBJ) $(SACCLDFLAGS) -o $@
 
 clean:
