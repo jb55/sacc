@@ -63,8 +63,9 @@ displaystatus(Item *item)
 
 	putp(tparm(cursor_address, lines-1, 0));
 	putp(tparm(enter_standout_mode));
-	printf("%3d%%| %s:%s%s", nitems <= lines ? 100 :
-	       ((unsigned long long)item->printoff + lines) * 100 / nitems,
+	printf("%3lld%%| %s:%s%s",
+	       (item->printoff + lines-1 >= nitems) ? 100 :
+	       ((unsigned long long)item->printoff + lines-1) * 100 / nitems,
 	       item->host, item->port, item->selector);
 	putp(tparm(exit_standout_mode));
 

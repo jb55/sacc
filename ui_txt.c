@@ -56,7 +56,8 @@ printstatus(Item *item)
 {
 	size_t nitems = item->dir->nitems;
 
-	printf("%3d%%%*c %s:%s%s (h for help): ", nitems <= lines ? 100 :
+	printf("%3lld%%%*c %s:%s%s (h for help): ",
+	       (item->printoff + lines >= nitems) ? 100 :
 	       ((unsigned long long)item->printoff + lines) * 100 / nitems,
 	       ndigits(nitems)+2, '|', item->host, item->port, item->selector);
 }
