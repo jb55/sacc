@@ -381,20 +381,17 @@ delve(Item *hole)
 		switch (dig(entry, hole)) {
 		case '0':
 			displaytextitem(hole);
-			hole = entry;
 			break;
 		case '1':
+			entry = hole;
 			break;
-		default:
+		case 0:
 			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
 			                hole->port, hole->type, hole->selector);
-			hole = entry;
-			break;
 		}
 
-		display(hole);
-		entry = hole;
-		hole = selectitem(hole);
+		display(entry);
+		hole = selectitem(entry);
 	}
 }
 
