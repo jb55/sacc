@@ -364,7 +364,8 @@ dig(Item *entry, Item *item)
 		}
 		break;
 	default:
-		fprintf(stderr, "Type %c not supported\n", item->type);
+		fprintf(stderr, "Type %c (%s) not supported\n",
+		        item->type, typedisplay(item->type));
 		return 0;
 	}
 
