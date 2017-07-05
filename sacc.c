@@ -324,20 +324,9 @@ connectto(const char *host, const char *port)
 }
 
 static int
-dig(Item *entry, Item *item)
+fetchitem(Item *item)
 {
 	int sock;
-
-	if (item->raw) /* already in cache */
-		return item->type;
-
-	if (!item->entry)
-		item->entry = entry;
-
-	if (item->type > '1') {
-		fprintf(stderr, "Type %c not supported\n", item->type);
-		return 0;
-	}
 
 	sock = connectto(item->host, item->port);
 	sendselector(sock, item->selector);
@@ -351,12 +340,34 @@ dig(Item *entry, Item *item)
 		return 0;
 	}
 
-	if (item->type == '1') {
-		if (!(item->dir = molddiritem(item->raw))) {
+	return (item->raw != NULL);
+}
+
+static int
+dig(Item *entry, Item *item)
+{
+	if (item->raw) /* already in cache */
+		return item->type;
+
+	if (!item->entry)
+		item->entry = entry;
+
+	switch (item->type) {
+	case '0':
+		if (!fetchitem(item))
+			return 0;
+		break;
+	case '1':
+		if (!fetchitem(item) || !(item->dir = molddiritem(item->raw))) {
 			fputs("Couldn't parse dir item\n", stderr);
 			return 0;
 		}
+		break;
+	default:
+		fprintf(stderr, "Type %c not supported\n", item->type);
+		return 0;
 	}
+
 	return item->type;
 }
 
