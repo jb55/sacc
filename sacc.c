@@ -232,8 +232,10 @@ molddiritem(char *raw)
 		}
 	}
 
-	if (!items)
+	if (!items) {
+		free(dir);
 		return NULL;
+	}
 
 	dir->items = items;
 	dir->nitems = nitems;
@@ -383,7 +385,8 @@ delve(Item *hole)
 			displaytextitem(hole);
 			break;
 		case '1':
-			entry = hole;
+			if (hole->dir)
+				entry = hole;
 			break;
 		case 0:
 			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
