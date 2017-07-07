@@ -10,6 +10,10 @@ static struct termios tsave;
 /* navigation keys */
 #define _key_lndown	'j' /* move one line down */
 #define _key_lnup	'k' /* move one line up */
+#define _key_pgdown	' ' /* move one screen down */
+#define _key_pgup	'b' /* move one screen down */
+#define _key_home	'g' /* move to the top of page */
+#define _key_end	'G' /* move to the bottom of page */
 #define _key_pgnext	'l' /* view highlighted item */
 #define _key_pgprev	'h' /* view previous item */
 #define _key_fetch	'L' /* refetch current item */
@@ -165,10 +169,44 @@ movecurline(Item *item, int l)
 	fflush(stdout);
 }
 
+static void
+jumptoline(Item *entry, ssize_t offset)
+{
+	size_t nitems;
+	int plines = lines-2;
+
+	if (!entry->dir)
+		return;
+
+	nitems = entry->dir->nitems;
+
+	if (offset <= 0) {
+		if (!entry->curline)
+			return;
+		entry->printoff = 0;
+		entry->curline = 0;
+	} else if (offset + plines > nitems) {
+		if (entry->curline == nitems-1)
+			return;
+		if (nitems > plines)
+			entry->printoff = nitems-1 - plines;
+		else
+			entry->printoff = 0;
+		entry->curline = nitems-1;
+	} else {
+		entry->printoff = offset;
+		entry->curline = entry->printoff;
+	}
+
+	display(entry);
+	return;
+}
+
 Item *
 selectitem(Item *entry)
 {
 	Dir *dir = entry->dir;
+	int plines = lines-2;
 
 	for (;;) {
 		switch (getchar()) {
@@ -182,6 +220,18 @@ selectitem(Item *entry)
 				continue;
 			}
 			switch (getchar()) {
+			case '4':
+				if (getchar() != '~')
+					continue;
+				goto end;
+			case '5':
+				if (getchar() != '~')
+					continue;
+				goto pgup;
+			case '6':
+				if (getchar() != '~')
+					continue;
+				goto pgdown;
 			case 'A':
 				goto lnup;
 			case 'B':
@@ -190,6 +240,8 @@ selectitem(Item *entry)
 				goto pgnext;
 			case 'D':
 				goto pgprev;
+			case 'H':
+				goto home;
 			case 0x1b:
 				goto quit;
 			}
@@ -207,14 +259,31 @@ selectitem(Item *entry)
 		lndown:
 			movecurline(entry, 1);
 			continue;
+		case _key_pgdown:
+		pgdown:
+			jumptoline(entry, entry->printoff + plines);
+			continue;
+		case _key_end:
+		end:
+			jumptoline(entry, entry->dir->nitems);
+			continue;
 		case _key_lnup:
 		lnup:
 			movecurline(entry, -1);
+			continue;
+		case _key_pgup:
+		pgup:
+			jumptoline(entry, entry->printoff - plines);
+			continue;
+		case _key_home:
+		home:
+			jumptoline(entry, 0);
 			continue;
 		case _key_quit:
 		quit:
 			return NULL;
 		case _key_fetch:
+		fetch:
 			if (entry->raw)
 				continue;
 			return entry;

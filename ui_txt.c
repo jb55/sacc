@@ -40,6 +40,8 @@ help(void)
 	     "0: browse previous item.\n"
 	     "n: show next page.\n"
 	     "p: show previous page.\n"
+	     "t: go to the top of the page\n"
+	     "b: go to the bottom of the page\n"
 	     "!: refetch failed item.\n"
 	     "^D, q: quit.\n"
 	     "h: this help.");
@@ -98,6 +100,7 @@ selectitem(Item *entry)
 	nitems = entry->dir ? entry->dir->nitems : 0;
 
 	do {
+		item = -1;
 		printstatus(entry);
 		fflush(stdout);
 
@@ -123,14 +126,23 @@ selectitem(Item *entry)
 				entry->printoff = 0;
 			return entry;
 		}
-
+		if (!strcmp(buf, "b\n")) {
+			lines = termlines();
+			if (nitems > lines)
+				entry->printoff = nitems - lines;
+			else
+				entry->printoff = 0;
+			return entry;
+		}
+		if (!strcmp(buf, "t\n")) {
+			entry->printoff = 0;
+			return entry;
+		}
 		if (!strcmp(buf, "!\n")) {
 			if (entry->raw)
 				continue;
 			return entry;
 		}
-
-		item = -1;
 		if (!strcmp(buf, "h\n")) {
 			help();
 			continue;
