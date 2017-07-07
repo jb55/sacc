@@ -95,41 +95,41 @@ typedisplay(char t)
 {
 	switch (t) {
 	case '0':
-		return "Text";
+		return "Text+";
 	case '1':
-		return "Dir";
+		return "Dir +";
 	case '2':
-		return "CSO";
+		return "CSO |";
 	case '3':
-		return "Err";
+		return "Err |";
 	case '4':
-		return "Macf";
+		return "Macf|";
 	case '5':
-		return "DOSf";
+		return "DOSf|";
 	case '6':
-		return "UUEf";
+		return "UUEf|";
 	case '7':
-		return "Find";
+		return "Find|";
 	case '8':
-		return "Tlnt";
+		return "Tlnt|";
 	case '9':
-		return "Binf";
+		return "Binf|";
 	case '+':
-		return "Mirr";
+		return "Mirr|";
 	case 'T':
-		return "IBMt";
+		return "IBMt|";
 	case 'g':
-		return "GIF";
+		return "GIF |";
 	case 'I':
-		return "Img";
+		return "Img |";
 	case 'h':
-		return "HTML";
+		return "HTML|";
 	case 'i':
-		return "Info";
+		return "    |";
 	case 's':
-		return "Snd";
+		return "Snd |";
 	default:
-		return "WRNG";
+		return "!   |";
 	}
 }
 

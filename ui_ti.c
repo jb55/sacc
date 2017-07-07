@@ -47,9 +47,7 @@ uicleanup(void)
 static void
 printitem(Item *item)
 {
-	printf("%-4s%c %s\r",
-	       item->type != 'i' ? typedisplay(item->type) : "",
-	       item->type > '1' ? '|' : '+', item->username);
+	printf("%s %s\r", typedisplay(item->type), item->username);
 }
 
 static void

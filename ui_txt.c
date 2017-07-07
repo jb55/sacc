@@ -80,12 +80,8 @@ display(Item *entry)
 	nd = ndigits(nitems);
 
 	for (i = entry->printoff; i < nitems && i < lines; ++i) {
-		item = items[i];
-		printf("%*zu %-4s%c %s\n", nd, i+1,
-		       item->type != 'i' ?
-		       typedisplay(item->type) : "",
-		       item->type > '1' ? '|' : '+',
-		       item->username);
+		printf("%*zu %s %s\n",
+		       nd, i+1, typedisplay(items[i]->type), items[i]->username);
 	}
 
 	fflush(stdout);
