@@ -475,6 +475,7 @@ cleanup(void)
 static void
 setup(void)
 {
+	setenv("PAGER", "more", 0);
 	atexit(cleanup);
 	uisetup();
 }
