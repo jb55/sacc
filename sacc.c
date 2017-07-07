@@ -200,7 +200,6 @@ molditem(char **raw)
 	item = xcalloc(sizeof(Item));
 
 	if ((next = invaliditem(*raw))) {
-		item->type = 'i';
 		item->username = *raw;
 		*raw = next;
 		return item;
