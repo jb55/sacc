@@ -57,6 +57,17 @@ xmalloc(const size_t n)
 	return m;
 }
 
+static void *
+xcalloc(size_t n)
+{
+	char *m = xmalloc(n);
+
+	while (n)
+		m[--n] = 0;
+
+	return m;
+}
+
 static char *
 xstrdup(const char *str)
 {
@@ -147,20 +158,8 @@ pickfield(char **raw, char sep)
 {
 	char *c, *f = *raw;
 
-	for (c = *raw; *c != sep; ++c) {
-		switch (*c) {
-		case '\t':
-			if (sep == '\r')
-				*c = '\0';
-		case '\n':
-		case '\r':
-		case '\0':
-			return NULL;
-		default:
-			continue;
-		}
-		break;
-	}
+	for (c = *raw; *c && *c != sep; ++c)
+		;
 
 	*c = '\0';
 	*raw = c+1;
@@ -168,35 +167,47 @@ pickfield(char **raw, char sep)
 	return f;
 }
 
+static char *
+invaliditem(char *raw)
+{
+	char c;
+	int tabs;
+
+	for (tabs = 0; (c = *raw) && c != '\n'; ++raw) {
+		if (c == '\t')
+			++tabs;
+	}
+	if (c)
+		*raw++ = '\0';
+
+	return (tabs == 3) ? NULL : raw;
+}
+
 static Item *
 molditem(char **raw)
 {
 	Item *item;
-	char type, *username, *selector, *host, *port;
+	char *next;
 
 	if (!*raw)
 		return NULL;
 
-	if (!(type = *raw[0]++) ||
-	    !(username = pickfield(raw, '\t')) ||
-	    !(selector = pickfield(raw, '\t')) ||
-	    !(host = pickfield(raw, '\t')) ||
-	    !(port = pickfield(raw, '\r')) ||
-	    *raw[0]++ != '\n')
-		return NULL;
+	item = xcalloc(sizeof(Item));
 
-	item = xmalloc(sizeof(Item));
+	if ((next = invaliditem(*raw))) {
+		item->type = 'i';
+		item->username = *raw;
+		*raw = next;
+		return item;
+	}
 
-	item->type = type;
-	item->username = username;
-	item->selector = selector;
-	item->host = host;
-	item->port = port;
-	item->raw = NULL;
-	item->dir = NULL;
-	item->entry = NULL;
-	item->printoff = 0;
-	item->curline = 0;
+	item->type = *raw[0]++;
+	item->username = pickfield(raw, '\t');
+	item->selector = pickfield(raw, '\t');
+	item->host = pickfield(raw, '\t');
+	item->port = pickfield(raw, '\r');
+	if (!*raw[0])
+		++*raw;
 
 	return item;
 }
@@ -204,38 +215,25 @@ molditem(char **raw)
 static Dir *
 molddiritem(char *raw)
 {
-	Item *item, **items = NULL;
-	char *crlf, *p;
+	Item **items = NULL;
+	char *s, *nl, *p;
 	Dir *dir;
 	size_t i, nitems;
 
-	for (crlf = raw, nitems = 0; p = strstr(crlf, "\r\n"); ++nitems)
-		crlf = p+2;
-	if (nitems <= 1)
-		return NULL;
-	if (!strcmp(crlf-3, ".\r\n"))
+	for (s = nl = raw, nitems = 0; p = strchr(nl, '\n'); ++nitems) {
+		s = nl;
+		nl = p+1;
+	}
+	if (!strcmp(s, ".\r\n") || !strcmp(s, ".\n"))
 		--nitems;
-	else
-		fprintf(stderr, "Parsing error: missing .\\r\\n last line\n");
+	if (!nitems)
+		return NULL;
 
 	dir = xmalloc(sizeof(Dir));
 	items = xreallocarray(items, nitems, sizeof(Item*));
 
-	for (i = 0; i < nitems; ++i) {
-		if (item = molditem(&raw)) {
-			items[i] = item;
-		} else {
-			fprintf(stderr, "Parsing error: dir entity: %d\n", i+1);
-			items = xreallocarray(items, i, sizeof(Item*));
-			nitems = i;
-			break;
-		}
-	}
-
-	if (!items) {
-		free(dir);
-		return NULL;
-	}
+	for (i = 0; i < nitems; ++i)
+		items[i] = molditem(&raw);
 
 	dir->items = items;
 	dir->nitems = nitems;

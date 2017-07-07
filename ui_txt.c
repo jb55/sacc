@@ -54,7 +54,7 @@ ndigits(size_t n)
 static void
 printstatus(Item *item)
 {
-	size_t nitems = item->dir->nitems;
+	size_t nitems = item->dir ? item->dir->nitems : 0;
 
 	printf("%3lld%%%*c %s:%s%s (h for help): ",
 	       (item->printoff + lines >= nitems) ? 100 :
@@ -65,11 +65,11 @@ printstatus(Item *item)
 void
 display(Item *entry)
 {
-	Item *item, **items;
+	Item **items;
 	size_t i, lines, nitems;
 	int nd;
 
-	if (entry->type != '1')
+	if (entry->type != '1' || !entry->dir)
 		return;
 
 	items = entry->dir->items;
@@ -78,15 +78,12 @@ display(Item *entry)
 	nd = ndigits(nitems);
 
 	for (i = entry->printoff; i < nitems && i < lines; ++i) {
-		if (item = items[i]) {
-			printf("%*zu %-4s%c %s\n", nd, i+1,
-			       item->type != 'i' ?
-			       typedisplay(item->type) : "",
-			       item->type > '1' ? '|' : '+',
-			       items[i]->username);
-		} else {
-			printf("%*zu  !! |\n", nd, i+1);
-		}
+		item = items[i];
+		printf("%*zu %-4s%c %s\n", nd, i+1,
+		       item->type != 'i' ?
+		       typedisplay(item->type) : "",
+		       item->type > '1' ? '|' : '+',
+		       item->username);
 	}
 
 	fflush(stdout);
@@ -113,7 +110,7 @@ selectitem(Item *entry)
 
 		if (!strcmp(buf, "n\n")) {
 			lines = termlines();
-			if (lines < entry->dir->nitems - entry->printoff &&
+			if (lines < nitems - entry->printoff &&
 			    lines < (size_t)-1 - entry->printoff)
 				entry->printoff += lines;
 			return entry;

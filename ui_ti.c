@@ -57,7 +57,7 @@ help(void)
 static void
 displaystatus(Item *item)
 {
-	size_t nitems = item->dir->nitems;
+	size_t nitems = item->dir ? item->dir->nitems : 0;
 
 	putp(tparm(save_cursor));
 
@@ -75,13 +75,18 @@ displaystatus(Item *item)
 void
 display(Item *entry)
 {
-	Item *item, **items;
+	Item **items;
 	size_t i, curln, lastln, nitems, printoff;
 
 	if (entry->type != '1')
 		return;
 
 	putp(tparm(clear_screen));
+	displaystatus(entry);
+
+	if (!entry->dir)
+		return;
+
 	putp(tparm(save_cursor));
 
 	items = entry->dir->items;
@@ -91,22 +96,19 @@ display(Item *entry)
 	lastln = printoff + lines-1; /* one off for status bar */
 
 	for (i = printoff; i < nitems && i < lastln; ++i) {
-		if (item = items[i]) {
-			if (i != printoff)
-				putp(tparm(cursor_down));
-			if (i == curln) {
-				putp(tparm(save_cursor));
-				putp(tparm(enter_standout_mode));
-			}
-			printitem(item);
-			putp(tparm(column_address, 0));
-			if (i == curln)
-				putp(tparm(exit_standout_mode));
+		if (i != printoff)
+			putp(tparm(cursor_down));
+		if (i == curln) {
+			putp(tparm(save_cursor));
+			putp(tparm(enter_standout_mode));
 		}
+		printitem(items[i]);
+		putp(tparm(column_address, 0));
+		if (i == curln)
+			putp(tparm(exit_standout_mode));
 	}
 
 	putp(tparm(restore_cursor));
-	displaystatus(entry);
 	fflush(stdout);
 }
 
@@ -166,8 +168,7 @@ movecurline(Item *item, int l)
 Item *
 selectitem(Item *entry)
 {
-	Item *hole;
-	int item, nitems;
+	Dir *dir = entry->dir;
 
 	for (;;) {
 		switch (getchar()) {
@@ -199,8 +200,8 @@ selectitem(Item *entry)
 		case _key_pgnext:
 		case '\r':
 		pgnext:
-			if (entry->dir->items[entry->curline]->type < '2')
-				return entry->dir->items[entry->curline];
+			if (dir)
+				return dir->items[entry->curline];
 			continue;
 		case _key_lndown:
 		lndown:
