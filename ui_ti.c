@@ -185,17 +185,23 @@ jumptoline(Item *entry, ssize_t offset)
 			return;
 		entry->printoff = 0;
 		entry->curline = 0;
-	} else if (offset + plines > nitems) {
-		if (entry->curline == nitems-1)
-			return;
-		if (nitems > plines)
-			entry->printoff = nitems-1 - plines;
-		else
-			entry->printoff = 0;
+	} else if (offset + plines < nitems) {
+		entry->printoff = offset;
+		entry->curline = offset;
+	} else if (entry->curline == nitems-1) {
+		return;
+	} else if (nitems < plines) {
+		entry->curline = nitems-1;
+	} else if (offset == nitems) {
+		entry->printoff = nitems-1 - plines;
 		entry->curline = nitems-1;
 	} else {
+		offset = nitems-1 - plines;
+		if (entry->printoff == offset)
+			entry->curline = nitems-1;
+		else if (entry->curline < offset)
+			entry->curline = offset;
 		entry->printoff = offset;
-		entry->curline = entry->printoff;
 	}
 
 	display(entry);
