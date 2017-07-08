@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -54,14 +55,15 @@ ndigits(size_t n)
 }
 
 static void
-printstatus(Item *item)
+printstatus(Item *item, char c)
 {
 	size_t nitems = item->dir ? item->dir->nitems : 0;
 
-	printf("%3lld%%%*c %s:%s%s (h for help): ",
+	printf("%3lld%%%*c %s:%s%s [%c]: ",
 	       (item->printoff + lines >= nitems) ? 100 :
 	       ((unsigned long long)item->printoff + lines) * 100 / nitems,
-	       ndigits(nitems)+2, '|', item->host, item->port, item->selector);
+	       ndigits(nitems)+2, '|',
+	       item->host, item->port, item->selector, c);
 }
 
 void
@@ -90,59 +92,68 @@ display(Item *entry)
 Item *
 selectitem(Item *entry)
 {
+	static char c;
 	char buf[BUFSIZ], nl;
 	int item, nitems, lines;
 
 	nitems = entry->dir ? entry->dir->nitems : 0;
+	if (!c)
+		c = 'h';
 
 	do {
 		item = -1;
-		printstatus(entry);
+		printstatus(entry, c);
 		fflush(stdout);
 
 		if (!fgets(buf, sizeof(buf), stdin)) {
 			putchar('\n');
 			return NULL;
 		}
-		if (!strcmp(buf, "q\n"))
-			return NULL;
+		if (isdigit(*buf))
+			c = '\0';
+		else if (!strcmp(buf+1, "\n"))
+			c = *buf;
 
-		if (!strcmp(buf, "n\n")) {
+		switch (c) {
+		case '\0':
+			break;
+		case 'q':
+			return NULL;
+		case 'n':
 			lines = termlines();
 			if (lines < nitems - entry->printoff &&
 			    lines < (size_t)-1 - entry->printoff)
 				entry->printoff += lines;
 			return entry;
-		}
-		if (!strcmp(buf, "p\n")) {
+		case 'p':
 			lines = termlines();
 			if (lines <= entry->printoff)
 				entry->printoff -= lines;
 			else
 				entry->printoff = 0;
 			return entry;
-		}
-		if (!strcmp(buf, "b\n")) {
+		case 'b':
 			lines = termlines();
 			if (nitems > lines)
 				entry->printoff = nitems - lines;
 			else
 				entry->printoff = 0;
 			return entry;
-		}
-		if (!strcmp(buf, "t\n")) {
+		case 't':
 			entry->printoff = 0;
 			return entry;
-		}
-		if (!strcmp(buf, "!\n")) {
+		case '!':
 			if (entry->raw)
 				continue;
 			return entry;
-		}
-		if (!strcmp(buf, "h\n")) {
+		case 'h':
 			help();
 			continue;
+		default:
+			c = 'h';
+			continue;
 		}
+
 		if (*buf < '0' || *buf > '9')
 			continue;
 
