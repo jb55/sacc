@@ -45,7 +45,7 @@ help(void)
 	     "b: go to the bottom of the page\n"
 	     "!: refetch failed item.\n"
 	     "^D, q: quit.\n"
-	     "h: this help.");
+	     "h, ?: this help.");
 }
 
 static int
@@ -147,6 +147,7 @@ selectitem(Item *entry)
 				continue;
 			return entry;
 		case 'h':
+		case '?':
 			help();
 			continue;
 		default:
