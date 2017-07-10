@@ -26,21 +26,23 @@ uisetup(void)
 	struct termios traw;
 
 	tcgetattr(0, &tsave);
-	traw = tsave;
-	cfmakeraw(&traw);
-	tcsetattr(0, TCSAFLUSH, &traw);
+	tsacc = tsave;
+	tsacc.c_lflag &= ~(ECHO|ICANON);
+	tcsetattr(0, TCSANOW, &tsacc);
 
 	setupterm(NULL, 1, NULL);
 	putp(tparm(save_cursor));
 	putp(tparm(change_scroll_region, 0, lines-2));
 	putp(tparm(restore_cursor));
+	fflush(stdout);
 }
 
 void
 uicleanup(void)
 {
-	tcsetattr(0, TCSAFLUSH, &tsave);
+	putp(tparm(change_scroll_region, 0, lines-1));
 	putp(tparm(clear_screen));
+	tcsetattr(0, TCSANOW, &tsave);
 	fflush(stdout);
 }
 
@@ -72,6 +74,7 @@ displaystatus(Item *item)
 	putp(tparm(exit_standout_mode));
 
 	putp(tparm(restore_cursor));
+	fflush(stdout);
 }
 
 void
