@@ -342,7 +342,9 @@ downloaditem(Item *item)
 
 	path[strlen(path)-1] = '\0';
 
-	if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
+	dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode);
+	free(path);
+	if (dest < 0) {
 		printf("Can't open destination file %s: %s\n",
 		       path, strerror(errno));
 		errno = 0;
