@@ -150,6 +150,7 @@ displaytextitem(Item *item)
 		fputs(item->raw, pagerin);
 		status = pclose(pagerin);
 		fputs("[ Press Enter to continue ]", stdout);
+		fflush(stdout);
 		getchar();
 		exit(status);
 	default:
