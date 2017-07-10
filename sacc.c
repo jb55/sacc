@@ -1,5 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 #include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -103,25 +104,25 @@ typedisplay(char t)
 	case '3':
 		return "Err |";
 	case '4':
-		return "Macf|";
+		return "Macf+";
 	case '5':
-		return "DOSf|";
+		return "DOSf+";
 	case '6':
-		return "UUEf|";
+		return "UUEf+";
 	case '7':
 		return "Find+";
 	case '8':
 		return "Tlnt|";
 	case '9':
-		return "Binf|";
+		return "Binf+";
 	case '+':
 		return "Mirr|";
 	case 'T':
 		return "IBMt|";
 	case 'g':
-		return "GIF |";
+		return "GIF +";
 	case 'I':
-		return "Img |";
+		return "Img +";
 	case 'h':
 		return "HTML|";
 	case 'i':
@@ -328,6 +329,46 @@ connectto(const char *host, const char *port)
 }
 
 static int
+downloaditem(Item *item)
+{
+	char buf[BUFSIZ], *path;
+	ssize_t r, w;
+	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
+	int sock, dest;
+
+	if (!(path = uiprompt("Download file to: ")))
+		return 0;
+
+	path[strlen(path)-1] = '\0';
+
+	if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
+		printf("Can't open destination file %s: %s\n",
+		       path, strerror(errno));
+		errno = 0;
+		return 0;
+	}
+
+	sock = connectto(item->host, item->port);
+	sendselector(sock, item->selector);
+
+	while ((r = read(sock, buf, BUFSIZ)) > 0) {
+		while ((w = write(dest, buf, r)) > 0)
+			r -= w;
+	}
+
+	if (r < 0 || w < 0) {
+		printf("Error downloading file %s: %s\n",
+		       item->selector, strerror(errno));
+		errno = 0;
+	}
+
+	close(dest);
+	close(sock);
+
+	return (r == 0 && w > 0);
+}
+
+static int
 fetchitem(Item *item)
 {
 	int sock;
@@ -385,6 +426,15 @@ dig(Item *entry, Item *item)
 			return 0;
 		}
 		break;
+	case '4':
+	case '5':
+	case '6':
+	case '9':
+	case 'g':
+	case 'I':
+		if (!downloaditem(item))
+			return 0;
+		break;
 	default:
 		fprintf(stderr, "Type %c (%s) not supported\n",
 		        item->type, typedisplay(item->type));
@@ -420,6 +470,14 @@ delve(Item *hole)
 				free(hole->selector);
 				hole->selector = selector;
 			}
+			break;
+		case '4':
+		case '5':
+		case '6': /* TODO decode? */
+		case '9':
+		case 'g':
+		case 'I':
+			dig(entry, hole);
 			break;
 		case 0:
 			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
