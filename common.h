@@ -24,4 +24,5 @@ void display(Item *item);
 Item *selectitem(Item *entry);
 const char *typedisplay(char t);
 void uicleanup(void);
+char *uiprompt(char *s);
 void uisetup(void);

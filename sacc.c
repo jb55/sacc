@@ -109,7 +109,7 @@ typedisplay(char t)
 	case '6':
 		return "UUEf|";
 	case '7':
-		return "Find|";
+		return "Find+";
 	case '8':
 		return "Tlnt|";
 	case '9':
@@ -347,6 +347,23 @@ fetchitem(Item *item)
 	return (item->raw != NULL);
 }
 
+static char *
+searchselector(Item *item)
+{
+	char *input, *selector = NULL;
+	size_t n;
+
+	if (input = uiprompt("Enter search string: ")) {
+		selector = item->selector;
+		n = strlen(input)-1 + strlen(selector);
+		item->selector = xmalloc(n);
+		snprintf(item->selector, n, "%s\t%s", selector, input);
+		free(input);
+	}
+
+	return selector;
+}
+
 static int
 dig(Item *entry, Item *item)
 {
@@ -362,6 +379,7 @@ dig(Item *entry, Item *item)
 			return 0;
 		break;
 	case '1':
+	case '7':
 		if (!fetchitem(item) || !(item->dir = molddiritem(item->raw))) {
 			fputs("Couldn't parse dir item\n", stderr);
 			return 0;
@@ -380,23 +398,37 @@ static void
 delve(Item *hole)
 {
 	Item *entry = hole;
+	char *selector;
 
 	while (hole) {
-		switch (dig(entry, hole)) {
+		switch (hole->type) {
 		case '0':
-			displaytextitem(hole);
+			if (dig(entry, hole))
+				displaytextitem(hole);
 			break;
 		case '1':
-			if (hole->dir)
+			if (dig(entry, hole) && hole->dir)
 				entry = hole;
+			break;
+		case '7':
+			if (selector = searchselector(hole)) {
+				free(hole->raw);
+				hole->raw = NULL;
+				hole->printoff = 0;
+				if (dig(entry, hole) && hole->dir)
+					entry = hole;
+				free(hole->selector);
+				hole->selector = selector;
+			}
 			break;
 		case 0:
 			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
 			                hole->port, hole->type, hole->selector);
 		}
 
-		display(entry);
-		hole = selectitem(entry);
+		do {
+			display(entry);
+		} while ((hole = selectitem(entry)) == entry);
 	}
 }
 

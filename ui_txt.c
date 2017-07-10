@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <sys/ioctl.h>
@@ -66,6 +67,22 @@ printstatus(Item *item, char c)
 	       item->host, item->port, item->selector, c);
 }
 
+char *
+uiprompt(char *s)
+{
+	char *input = NULL;
+	size_t n = 0;
+
+	fputs(s, stdout);
+	fflush(stdout);
+
+	if (getline(&input, &n, stdin) > 1)
+		return input;
+
+	free(input);
+	return NULL;
+}
+
 void
 display(Item *entry)
 {
@@ -73,7 +90,7 @@ display(Item *entry)
 	size_t i, lines, nitems;
 	int nd;
 
-	if (entry->type != '1' || !entry->dir)
+	if (!(entry->type == '1' || entry->type == '7') || !entry->dir)
 		return;
 
 	items = entry->dir->items;

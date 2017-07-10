@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <term.h>
 #include <termios.h>
 #include <unistd.h>
@@ -7,6 +8,7 @@
 #include "common.h"
 
 static struct termios tsave;
+static struct termios tsacc;
 /* navigation keys */
 #define _key_lndown	'j' /* move one line down */
 #define _key_lnup	'k' /* move one line up */
@@ -23,8 +25,6 @@ static struct termios tsave;
 void
 uisetup(void)
 {
-	struct termios traw;
-
 	tcgetattr(0, &tsave);
 	tsacc = tsave;
 	tsacc.c_lflag &= ~(ECHO|ICANON);
@@ -44,6 +44,39 @@ uicleanup(void)
 	putp(tparm(clear_screen));
 	tcsetattr(0, TCSANOW, &tsave);
 	fflush(stdout);
+}
+
+char *
+uiprompt(char *s)
+{
+	char *input = NULL;
+	size_t n = 0;
+	ssize_t r;
+
+	putp(tparm(save_cursor));
+
+	putp(tparm(cursor_address, lines-1, 0));
+	putp(tparm(clr_eol));
+	putp(tparm(enter_standout_mode));
+	fputs(s, stdout);
+	putp(tparm(exit_standout_mode));
+
+	tsacc.c_lflag |= (ECHO|ICANON);
+	tcsetattr(0, TCSANOW, &tsacc);
+	fflush(stdout);
+
+	r = getline(&input, &n, stdin);
+
+	tsacc.c_lflag &= ~(ECHO|ICANON);
+	tcsetattr(0, TCSANOW, &tsacc);
+	putp(tparm(restore_cursor));
+	fflush(stdout);
+
+	if (r > 1)
+		return input;
+
+	free(input);
+	return NULL;
 }
 
 static void
@@ -83,7 +116,7 @@ display(Item *entry)
 	Item **items;
 	size_t i, curln, lastln, nitems, printoff;
 
-	if (entry->type != '1')
+	if (!(entry->type == '1' || entry->type == '7'))
 		return;
 
 	putp(tparm(clear_screen));
