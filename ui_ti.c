@@ -290,7 +290,7 @@ selectitem(Item *entry)
 		pgprev:
 			return entry->entry;
 		case _key_pgnext:
-		case '\r':
+		case '\n':
 		pgnext:
 			if (dir)
 				return dir->items[entry->curline];
@@ -331,7 +331,6 @@ selectitem(Item *entry)
 			help();
 		default:
 			continue;
-
 		}
 	}
 }
