@@ -91,6 +91,26 @@ usage(void)
 	die("usage: sacc URL");
 }
 
+static void
+clearitem(Item *item)
+{
+	Dir *dir = item->dir;
+	Item **items;
+	size_t i;
+
+	if (dir) {
+		items = dir->items;
+		for (i = 0; i < dir->nitems; ++i) {
+			clearitem(items[i]);
+			free(items[i]);
+		}
+		free(items);
+		clear(&item->dir);
+	}
+
+	clear(&item->raw);
+}
+
 const char *
 typedisplay(char t)
 {
@@ -559,7 +579,8 @@ moldentry(char *url)
 static void
 cleanup(void)
 {
-	free(mainentry); /* TODO free all tree recursively */
+	clearitem(mainentry);
+	free(mainentry);
 	free(mainurl);
 	uicleanup();
 }

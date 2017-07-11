@@ -1,3 +1,5 @@
+#define clear(p)	do { void **_p = (void **)(p); free(*_p); *_p = NULL; } while (0);
+
 typedef struct item Item;
 typedef struct dir Dir;
 
