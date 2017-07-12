@@ -94,7 +94,7 @@ usage(void)
 static void
 clearitem(Item *item)
 {
-	Dir *dir = item->dir;
+	Dir *dir = item->dat;
 	Item **items;
 	size_t i;
 
@@ -105,7 +105,7 @@ clearitem(Item *item)
 			free(items[i]);
 		}
 		free(items);
-		clear(&item->dir);
+		clear(&item->dat);
 	}
 
 	clear(&item->raw);
@@ -444,7 +444,7 @@ dig(Item *entry, Item *item)
 		break;
 	case '1':
 	case '7':
-		if (!fetchitem(item) || !(item->dir = molddiritem(item->raw))) {
+		if (!fetchitem(item) || !(item->dat = molddiritem(item->raw))) {
 			fputs("Couldn't parse dir item\n", stderr);
 			return 0;
 		}
@@ -480,7 +480,7 @@ delve(Item *hole)
 				displaytextitem(hole);
 			break;
 		case '1':
-			if (dig(entry, hole) && hole->dir)
+			if (dig(entry, hole) && hole->dat)
 				entry = hole;
 			break;
 		case '7':
@@ -488,7 +488,7 @@ delve(Item *hole)
 				free(hole->raw);
 				hole->raw = NULL;
 				hole->printoff = 0;
-				if (dig(entry, hole) && hole->dir)
+				if (dig(entry, hole) && hole->dat)
 					entry = hole;
 				free(hole->selector);
 				hole->selector = selector;
@@ -571,7 +571,7 @@ moldentry(char *url)
 	entry->printoff = 0;
 	entry->curline = 0;
 	entry->raw = NULL;
-	entry->dir = NULL;
+	entry->dat = NULL;
 
 	return entry;
 }

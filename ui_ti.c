@@ -94,7 +94,7 @@ help(void)
 static void
 displaystatus(Item *item)
 {
-	size_t nitems = item->dir ? item->dir->nitems : 0;
+	size_t nitems = item->dat ? ((Dir*)item->dat)->nitems : 0;
 
 	putp(tparm(save_cursor));
 
@@ -114,6 +114,7 @@ void
 display(Item *entry)
 {
 	Item **items;
+	Dir *dir = entry->dat;
 	size_t i, curln, lastln, nitems, printoff;
 
 	if (!(entry->type == '1' || entry->type == '7'))
@@ -122,13 +123,13 @@ display(Item *entry)
 	putp(tparm(clear_screen));
 	displaystatus(entry);
 
-	if (!entry->dir)
+	if (!dir)
 		return;
 
 	putp(tparm(save_cursor));
 
-	items = entry->dir->items;
-	nitems = entry->dir->nitems;
+	items = dir->items;
+	nitems = dir->nitems;
 	printoff = entry->printoff;
 	curln = entry->curline;
 	lastln = printoff + lines-1; /* one off for status bar */
@@ -153,19 +154,20 @@ display(Item *entry)
 static void
 movecurline(Item *item, int l)
 {
+	Dir *dir = item->dat;
 	size_t nitems;
 	ssize_t curline, offline;
 	int plines = lines-2;
 
-	if (item->dir == NULL)
+	if (dir == NULL)
 		return;
 
 	curline = item->curline + l;
-	nitems = item->dir->nitems;
+	nitems = dir->nitems;
 	if (curline < 0 || curline >= nitems)
 		return;
 
-	printitem(item->dir->items[item->curline]);
+	printitem(dir->items[item->curline]);
 	item->curline = curline;
 
 	if (l > 0) {
@@ -175,7 +177,7 @@ movecurline(Item *item, int l)
 
 			putp(tparm(cursor_address, plines, 0));
 			putp(tparm(scroll_forward));
-			printitem(item->dir->items[offline]);
+			printitem(dir->items[offline]);
 
 			putp(tparm(restore_cursor));
 			item->printoff += l;
@@ -187,7 +189,7 @@ movecurline(Item *item, int l)
 
 			putp(tparm(cursor_address, 0, 0));
 			putp(tparm(scroll_reverse));
-			printitem(item->dir->items[offline]);
+			printitem(dir->items[offline]);
 			putchar('\n');
 
 			putp(tparm(restore_cursor));
@@ -197,7 +199,7 @@ movecurline(Item *item, int l)
 	
 	putp(tparm(cursor_address, curline - item->printoff, 0));
 	putp(tparm(enter_standout_mode));
-	printitem(item->dir->items[curline]);
+	printitem(dir->items[curline]);
 	putp(tparm(exit_standout_mode));
 	displaystatus(item);
 	fflush(stdout);
@@ -206,13 +208,14 @@ movecurline(Item *item, int l)
 static void
 jumptoline(Item *entry, ssize_t offset)
 {
+	Dir *dir = entry->dat;
 	size_t nitems;
 	int plines = lines-2;
 
-	if (!entry->dir)
+	if (!dir)
 		return;
 
-	nitems = entry->dir->nitems;
+	nitems = dir->nitems;
 
 	if (offset <= 0) {
 		if (!entry->curline)
@@ -245,7 +248,7 @@ jumptoline(Item *entry, ssize_t offset)
 Item *
 selectitem(Item *entry)
 {
-	Dir *dir = entry->dir;
+	Dir *dir = entry->dat;
 	int plines = lines-2;
 
 	for (;;) {
@@ -305,7 +308,7 @@ selectitem(Item *entry)
 			continue;
 		case _key_end:
 		end:
-			jumptoline(entry, entry->dir->nitems);
+			jumptoline(entry, dir->nitems);
 			continue;
 		case _key_lnup:
 		lnup:

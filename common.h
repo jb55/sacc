@@ -13,7 +13,7 @@ struct item {
 	size_t printoff;
 	size_t curline;
 	Item *entry;
-	Dir  *dir;
+	void *dat;
 };
 
 struct dir {

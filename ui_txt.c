@@ -58,7 +58,7 @@ ndigits(size_t n)
 static void
 printstatus(Item *item, char c)
 {
-	size_t nitems = item->dir ? item->dir->nitems : 0;
+	size_t nitems = item->dat ? ((Dir*)item->dat)->nitems : 0;
 
 	printf("%3lld%%%*c %s:%s%s [%c]: ",
 	       (item->printoff + lines >= nitems) ? 100 :
@@ -87,14 +87,15 @@ void
 display(Item *entry)
 {
 	Item **items;
+	Dir *dir = entry->dat;
 	size_t i, lines, nitems;
 	int nd;
 
-	if (!(entry->type == '1' || entry->type == '7') || !entry->dir)
+	if (!(entry->type == '1' || entry->type == '7') || !dir)
 		return;
 
-	items = entry->dir->items;
-	nitems = entry->dir->nitems;
+	items = dir->items;
+	nitems = dir->nitems;
 	lines = entry->printoff + termlines();
 	nd = ndigits(nitems);
 
@@ -109,11 +110,12 @@ display(Item *entry)
 Item *
 selectitem(Item *entry)
 {
+	Dir *dir = entry->dat;
 	static char c;
 	char buf[BUFSIZ], nl;
 	int item, nitems, lines;
 
-	nitems = entry->dir ? entry->dir->nitems : 0;
+	nitems = dir ? dir->nitems : 0;
 	if (!c)
 		c = 'h';
 
@@ -181,7 +183,7 @@ selectitem(Item *entry)
 	} while (item < 0 || item > nitems);
 
 	if (item > 0)
-		return entry->dir->items[item-1];
+		return dir->items[item-1];
 
 	return entry->entry;
 }
