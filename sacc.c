@@ -144,7 +144,7 @@ typedisplay(char t)
 	case 'I':
 		return "Img +";
 	case 'h':
-		return "HTML|";
+		return "HTML+";
 	case 'i':
 		return "    |";
 	case 's':
@@ -439,6 +439,11 @@ dig(Item *entry, Item *item)
 		item->entry = entry;
 
 	switch (item->type) {
+	case 'h': /* fallthrough */
+		if (!strncmp(item->selector, "URL:", 4)) {
+			item->dat = item->selector+4;
+			return 0;
+		}
 	case '0':
 		if (!fetchitem(item))
 			return 0;
@@ -476,6 +481,7 @@ delve(Item *hole)
 
 	while (hole) {
 		switch (hole->type) {
+		case 'h':
 		case '0':
 			if (dig(entry, hole))
 				displaytextitem(hole);
