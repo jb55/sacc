@@ -94,15 +94,17 @@ help(void)
 static void
 displaystatus(Item *item)
 {
-	size_t nitems = item->dat ? ((Dir*)item->dat)->nitems : 0;
+	Dir *dir = item->dat;
+	size_t nitems = dir ? dir->nitems : 0;
+	unsigned long long printoff = dir ? dir->printoff : 0;
 
 	putp(tparm(save_cursor));
 
 	putp(tparm(cursor_address, lines-1, 0));
 	putp(tparm(enter_standout_mode));
 	printf("%3lld%%| %s:%s%s",
-	       (item->printoff + lines-1 >= nitems) ? 100 :
-	       ((unsigned long long)item->printoff + lines-1) * 100 / nitems,
+	       (printoff + lines-1 >= nitems) ? 100 :
+	       (printoff + lines-1) * 100 / nitems,
 	       item->host, item->port, item->selector);
 	putp(tparm(exit_standout_mode));
 
@@ -130,8 +132,8 @@ display(Item *entry)
 
 	items = dir->items;
 	nitems = dir->nitems;
-	printoff = entry->printoff;
-	curln = entry->curline;
+	printoff = dir->printoff;
+	curln = dir->curline;
 	lastln = printoff + lines-1; /* one off for status bar */
 
 	for (i = printoff; i < nitems && i < lastln; ++i) {
@@ -162,17 +164,17 @@ movecurline(Item *item, int l)
 	if (dir == NULL)
 		return;
 
-	curline = item->curline + l;
+	curline = dir->curline + l;
 	nitems = dir->nitems;
 	if (curline < 0 || curline >= nitems)
 		return;
 
-	printitem(dir->items[item->curline]);
-	item->curline = curline;
+	printitem(dir->items[dir->curline]);
+	dir->curline = curline;
 
 	if (l > 0) {
-		offline = item->printoff + lines-1;
-		if (curline - item->printoff >= plines / 2 && offline < nitems) {
+		offline = dir->printoff + lines-1;
+		if (curline - dir->printoff >= plines / 2 && offline < nitems) {
 			putp(tparm(save_cursor));
 
 			putp(tparm(cursor_address, plines, 0));
@@ -180,10 +182,10 @@ movecurline(Item *item, int l)
 			printitem(dir->items[offline]);
 
 			putp(tparm(restore_cursor));
-			item->printoff += l;
+			dir->printoff += l;
 		}
 	} else {
-		offline = item->printoff + l;
+		offline = dir->printoff + l;
 		if (curline - offline <= plines / 2 && offline >= 0) {
 			putp(tparm(save_cursor));
 
@@ -193,11 +195,11 @@ movecurline(Item *item, int l)
 			putchar('\n');
 
 			putp(tparm(restore_cursor));
-			item->printoff += l;
+			dir->printoff += l;
 		}
 	}
 	
-	putp(tparm(cursor_address, curline - item->printoff, 0));
+	putp(tparm(cursor_address, curline - dir->printoff, 0));
 	putp(tparm(enter_standout_mode));
 	printitem(dir->items[curline]);
 	putp(tparm(exit_standout_mode));
@@ -218,27 +220,27 @@ jumptoline(Item *entry, ssize_t offset)
 	nitems = dir->nitems;
 
 	if (offset <= 0) {
-		if (!entry->curline)
+		if (!dir->curline)
 			return;
-		entry->printoff = 0;
-		entry->curline = 0;
+		dir->printoff = 0;
+		dir->curline = 0;
 	} else if (offset + plines < nitems) {
-		entry->printoff = offset;
-		entry->curline = offset;
-	} else if (entry->curline == nitems-1) {
+		dir->printoff = offset;
+		dir->curline = offset;
+	} else if (dir->curline == nitems-1) {
 		return;
 	} else if (nitems < plines) {
-		entry->curline = nitems-1;
+		dir->curline = nitems-1;
 	} else if (offset == nitems) {
-		entry->printoff = nitems-1 - plines;
-		entry->curline = nitems-1;
+		dir->printoff = nitems-1 - plines;
+		dir->curline = nitems-1;
 	} else {
 		offset = nitems-1 - plines;
-		if (entry->printoff == offset)
-			entry->curline = nitems-1;
-		else if (entry->curline < offset)
-			entry->curline = offset;
-		entry->printoff = offset;
+		if (dir->printoff == offset)
+			dir->curline = nitems-1;
+		else if (dir->curline < offset)
+			dir->curline = offset;
+		dir->printoff = offset;
 	}
 
 	display(entry);
@@ -296,7 +298,7 @@ selectitem(Item *entry)
 		case '\n':
 		pgnext:
 			if (dir)
-				return dir->items[entry->curline];
+				return dir->items[dir->curline];
 			continue;
 		case _key_lndown:
 		lndown:
@@ -304,7 +306,7 @@ selectitem(Item *entry)
 			continue;
 		case _key_pgdown:
 		pgdown:
-			jumptoline(entry, entry->printoff + plines);
+			jumptoline(entry, dir->printoff + plines);
 			continue;
 		case _key_end:
 		end:
@@ -316,7 +318,7 @@ selectitem(Item *entry)
 			continue;
 		case _key_pgup:
 		pgup:
-			jumptoline(entry, entry->printoff - plines);
+			jumptoline(entry, dir->printoff - plines);
 			continue;
 		case _key_home:
 		home:

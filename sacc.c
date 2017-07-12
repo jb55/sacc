@@ -263,6 +263,7 @@ molddiritem(char *raw)
 
 	dir->items = items;
 	dir->nitems = nitems;
+	dir->printoff = dir->curline = 0;
 
 	return dir;
 }
@@ -485,9 +486,7 @@ delve(Item *hole)
 			break;
 		case '7':
 			if (selector = searchselector(hole)) {
-				free(hole->raw);
-				hole->raw = NULL;
-				hole->printoff = 0;
+				clear(hole->raw);
 				if (dig(entry, hole) && hole->dat)
 					entry = hole;
 				free(hole->selector);
@@ -568,10 +567,7 @@ moldentry(char *url)
 	entry->host = host;
 	entry->port = port;
 	entry->entry = entry;
-	entry->printoff = 0;
-	entry->curline = 0;
-	entry->raw = NULL;
-	entry->dat = NULL;
+	entry->raw = entry->dat = NULL;
 
 	return entry;
 }

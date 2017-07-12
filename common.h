@@ -10,15 +10,15 @@ struct item {
 	char *host;
 	char *port;
 	char *raw;
-	size_t printoff;
-	size_t curline;
-	Item *entry;
 	void *dat;
+	Item *entry;
 };
 
 struct dir {
 	Item **items;
 	size_t nitems;
+	size_t printoff;
+	size_t curline;
 };
 
 void die(const char *fmt, ...);

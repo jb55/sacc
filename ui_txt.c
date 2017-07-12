@@ -58,12 +58,13 @@ ndigits(size_t n)
 static void
 printstatus(Item *item, char c)
 {
-	size_t nitems = item->dat ? ((Dir*)item->dat)->nitems : 0;
+	Dir *dir = item->dat;
+	size_t nitems = dir ? dir->nitems : 0;
+	unsigned long long printoff = dir ? dir->printoff : 0;
 
 	printf("%3lld%%%*c %s:%s%s [%c]: ",
-	       (item->printoff + lines >= nitems) ? 100 :
-	       ((unsigned long long)item->printoff + lines) * 100 / nitems,
-	       ndigits(nitems)+2, '|',
+	       (printoff + lines >= nitems) ? 100 :
+	       (printoff + lines) * 100 / nitems, ndigits(nitems)+2, '|',
 	       item->host, item->port, item->selector, c);
 }
 
@@ -96,10 +97,10 @@ display(Item *entry)
 
 	items = dir->items;
 	nitems = dir->nitems;
-	lines = entry->printoff + termlines();
+	lines = dir->printoff + termlines();
 	nd = ndigits(nitems);
 
-	for (i = entry->printoff; i < nitems && i < lines; ++i) {
+	for (i = dir->printoff; i < nitems && i < lines; ++i) {
 		printf("%*zu %s %s\n",
 		       nd, i+1, typedisplay(items[i]->type), items[i]->username);
 	}
@@ -140,26 +141,26 @@ selectitem(Item *entry)
 			return NULL;
 		case 'n':
 			lines = termlines();
-			if (lines < nitems - entry->printoff &&
-			    lines < (size_t)-1 - entry->printoff)
-				entry->printoff += lines;
+			if (lines < nitems - dir->printoff &&
+			    lines < (size_t)-1 - dir->printoff)
+				dir->printoff += lines;
 			return entry;
 		case 'p':
 			lines = termlines();
-			if (lines <= entry->printoff)
-				entry->printoff -= lines;
+			if (lines <= dir->printoff)
+				dir->printoff -= lines;
 			else
-				entry->printoff = 0;
+				dir->printoff = 0;
 			return entry;
 		case 'b':
 			lines = termlines();
 			if (nitems > lines)
-				entry->printoff = nitems - lines;
+				dir->printoff = nitems - lines;
 			else
-				entry->printoff = 0;
+				dir->printoff = 0;
 			return entry;
 		case 't':
-			entry->printoff = 0;
+			dir->printoff = 0;
 			return entry;
 		case '!':
 			if (entry->raw)
