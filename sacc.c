@@ -571,10 +571,6 @@ moldentry(char *url)
 	if (*host == '\0' || *port == '\0' || ipv6)
 		die("Can't parse url");
 
-	if (gopherpath[0] > '1')
-		die("Gopher type not supported: %s",
-		    typedisplay(gopherpath[0]));
-
 	entry = xmalloc(sizeof(Item));
 	entry->type = gopherpath[0];
 	entry->username = entry->selector = ++gopherpath;
