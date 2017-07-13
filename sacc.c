@@ -95,11 +95,14 @@ usage(void)
 static void
 clearitem(Item *item)
 {
-	Dir *dir = item->dat;
+	Dir *dir;
 	Item **items;
 	size_t i;
 
-	if (dir) {
+	if (!item)
+		return;
+
+	if (dir = item->dat) {
 		items = dir->items;
 		for (i = 0; i < dir->nitems; ++i) {
 			clearitem(items[i]);
