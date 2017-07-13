@@ -7,6 +7,9 @@
 
 #include "common.h"
 
+#define C(c) #c
+#define S(c) C(c)
+
 static struct termios tsave;
 static struct termios tsacc;
 /* navigation keys */
@@ -85,10 +88,27 @@ printitem(Item *item)
 	printf("%s %s\r", typedisplay(item->type), item->username);
 }
 
-static void
-help(void)
+static Item *
+help(Item *entry)
 {
-	return;
+	static Item item = {
+		.type = '0',
+		.raw = "Commands:\n"
+		       "Down, " S(_key_lndown) ": move one line down.\n"
+		       "Up, " S(_key_lnup) ": move one line up.\n"
+		       "PgDown, " S(_key_pgdown) ": move one page down.\n"
+		       "PgUp, " S(_key_pgup) ": move one page up.\n"
+		       "Home, " S(_key_home) ": move to top of the page.\n"
+		       "End, " S(_key_end) ": move to end of the page.\n"
+		       "Right, " S(_key_pgnext) ": view highlighted item.\n"
+		       "Left, " S(_key_pgprev) ": view previous item.\n"
+		       S(_key_help) ": show this help.\n"
+		       "^D, " S(_key_quit) ": exit sacc.\n"
+	};
+
+	item.entry = entry;
+
+	return &item;
 }
 
 static void
@@ -336,7 +356,7 @@ selectitem(Item *entry)
 				continue;
 			return entry;
 		case _key_help: /* FALLTHROUGH */
-			help();
+			return help(entry);
 		default:
 			continue;
 		}
