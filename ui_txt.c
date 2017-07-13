@@ -88,11 +88,12 @@ void
 display(Item *entry)
 {
 	Item **items;
-	Dir *dir = entry->dat;
+	Dir *dir;
 	size_t i, lines, nitems;
 	int nd;
 
-	if (!(entry->type == '1' || entry->type == '7') || !dir)
+	if (!entry || !(entry->type == '1' || entry->type == '7') ||
+	    !(dir = entry->dat))
 		return;
 
 	items = dir->items;
@@ -111,10 +112,13 @@ display(Item *entry)
 Item *
 selectitem(Item *entry)
 {
-	Dir *dir = entry->dat;
+	Dir *dir;
 	static char c;
 	char buf[BUFSIZ], nl;
 	int item, nitems, lines;
+
+	if (!entry || !(dir = entry->dat))
+		return NULL;
 
 	nitems = dir ? dir->nitems : 0;
 	if (!c)

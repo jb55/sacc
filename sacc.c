@@ -436,7 +436,7 @@ dig(Item *entry, Item *item)
 		return item->type;
 
 	if (!item->entry)
-		item->entry = entry;
+		item->entry = entry ? entry : item;
 
 	switch (item->type) {
 	case 'h': /* fallthrough */
@@ -476,7 +476,7 @@ dig(Item *entry, Item *item)
 static void
 delve(Item *hole)
 {
-	Item *entry = hole;
+	Item *entry = NULL;
 	char *selector;
 
 	while (hole) {
@@ -512,9 +512,13 @@ delve(Item *hole)
 			                hole->port, hole->type, hole->selector);
 		}
 
+		if (!entry)
+			return;
+
 		do {
 			display(entry);
-		} while ((hole = selectitem(entry)) == entry);
+			hole = selectitem(entry);
+		} while (hole == entry);
 	}
 }
 

@@ -116,16 +116,16 @@ void
 display(Item *entry)
 {
 	Item **items;
-	Dir *dir = entry->dat;
+	Dir *dir;
 	size_t i, curln, lastln, nitems, printoff;
 
-	if (!(entry->type == '1' || entry->type == '7'))
+	if (!entry || !(entry->type == '1' || entry->type == '7'))
 		return;
 
 	putp(tparm(clear_screen));
 	displaystatus(entry);
 
-	if (!dir)
+	if (!(dir = entry->dat))
 		return;
 
 	putp(tparm(save_cursor));
@@ -250,8 +250,11 @@ jumptoline(Item *entry, ssize_t offset)
 Item *
 selectitem(Item *entry)
 {
-	Dir *dir = entry->dat;
+	Dir *dir;
 	int plines = lines-2;
+
+	if (!entry || !(dir = entry->dat))
+		return NULL;
 
 	for (;;) {
 		switch (getchar()) {
