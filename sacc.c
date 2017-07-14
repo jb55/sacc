@@ -140,7 +140,7 @@ typedisplay(char t)
 	case '9':
 		return "Binf+";
 	case '+':
-		return "Mirr|";
+		return "Mirr+";
 	case 'T':
 		return "IBMt|";
 	case 'g':
@@ -453,6 +453,7 @@ dig(Item *entry, Item *item)
 			return 0;
 		break;
 	case '1':
+	case '+':
 	case '7':
 		if (!fetchitem(item) || !(item->dat = molddiritem(item->raw))) {
 			fputs("Couldn't parse dir item\n", stderr);
@@ -491,6 +492,7 @@ delve(Item *hole)
 				displaytextitem(hole);
 			break;
 		case '1':
+		case '+':
 			if (dig(entry, hole) && hole->dat)
 				entry = hole;
 			break;

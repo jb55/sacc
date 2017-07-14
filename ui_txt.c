@@ -92,7 +92,8 @@ display(Item *entry)
 	size_t i, lines, nitems;
 	int nd;
 
-	if (!entry || !(entry->type == '1' || entry->type == '7') ||
+	if (!entry ||
+	    !(entry->type == '1' || entry->type == '+' || entry->type == '7') ||
 	    !(dir = entry->dat))
 		return;
 

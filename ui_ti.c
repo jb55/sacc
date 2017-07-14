@@ -139,7 +139,8 @@ display(Item *entry)
 	Dir *dir;
 	size_t i, curln, lastln, nitems, printoff;
 
-	if (!entry || !(entry->type == '1' || entry->type == '7'))
+	if (!entry ||
+	    !(entry->type == '1' || entry->type == '+' || entry->type == '7'))
 		return;
 
 	putp(tparm(clear_screen));
