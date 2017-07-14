@@ -424,7 +424,7 @@ searchselector(Item *item)
 
 	if (input = uiprompt("Enter search string: ")) {
 		selector = item->selector;
-		n = strlen(input)-1 + strlen(selector);
+		n = strlen(selector) + 1 + strlen(input);
 		item->selector = xmalloc(n);
 		snprintf(item->selector, n, "%s\t%s", selector, input);
 		free(input);
@@ -498,7 +498,7 @@ delve(Item *hole)
 			break;
 		case '7':
 			if (selector = searchselector(hole)) {
-				clear(hole->raw);
+				clear(&hole->raw);
 				if (dig(entry, hole) && hole->dat)
 					entry = hole;
 				free(hole->selector);
