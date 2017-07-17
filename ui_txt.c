@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,12 +70,16 @@ printstatus(Item *item, char c)
 }
 
 char *
-uiprompt(char *s)
+uiprompt(char *fmt, ...)
 {
+	va_list ap;
 	char *input = NULL;
 	size_t n = 0;
 
-	fputs(s, stdout);
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+
 	fflush(stdout);
 
 	if (getline(&input, &n, stdin) > 1)

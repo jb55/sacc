@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <term.h>
@@ -50,8 +51,9 @@ uicleanup(void)
 }
 
 char *
-uiprompt(char *s)
+uiprompt(char *fmt, ...)
 {
+	va_list ap;
 	char *input = NULL;
 	size_t n = 0;
 	ssize_t r;
@@ -61,7 +63,11 @@ uiprompt(char *s)
 	putp(tparm(cursor_address, lines-1, 0));
 	putp(tparm(clr_eol));
 	putp(tparm(enter_standout_mode));
-	fputs(s, stdout);
+
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+
 	putp(tparm(exit_standout_mode));
 
 	tsacc.c_lflag |= (ECHO|ICANON);

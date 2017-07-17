@@ -357,24 +357,29 @@ connectto(const char *host, const char *port)
 static int
 downloaditem(Item *item)
 {
-	char buf[BUFSIZ], *path;
+	char buf[BUFSIZ], *path, *file;
 	ssize_t r, w;
 	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
 	int sock, dest;
 
-	if (!(path = uiprompt("Download file to: ")))
-		return 0;
+	if (file = strrchr(item->selector, '/'))
+		++file;
+	else
+		file = item->selector;
 
-	path[strlen(path)-1] = '\0';
+	if (path = uiprompt("Download file to [%s]: ", file))
+		path[strlen(path)-1] = '\0';
+	else
+		path = xstrdup(file);
 
-	dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode);
-	free(path);
-	if (dest < 0) {
+	if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
 		printf("Can't open destination file %s: %s\n",
 		       path, strerror(errno));
 		errno = 0;
+		free(path);
 		return 0;
 	}
+	free(path);
 
 	sock = connectto(item->host, item->port);
 	sendselector(sock, item->selector);
