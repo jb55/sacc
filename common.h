@@ -10,6 +10,7 @@ struct item {
 	char *host;
 	char *port;
 	char *raw;
+	char *tag;
 	void *dat;
 	Item *entry;
 };

@@ -97,6 +97,7 @@ clearitem(Item *item)
 {
 	Dir *dir;
 	Item **items;
+	char *tag;
 	size_t i;
 
 	if (!item)
@@ -112,6 +113,11 @@ clearitem(Item *item)
 		clear(&item->dat);
 	}
 
+	if ((tag = item->tag) &&
+	    !strncmp(tag, "/tmp/sacc/img-", 14) && strlen(tag) == 20)
+		unlink(tag);
+
+	clear(&item->tag);
 	clear(&item->raw);
 }
 
@@ -355,31 +361,33 @@ connectto(const char *host, const char *port)
 }
 
 static int
-downloaditem(Item *item)
+downloaditem(Item *item, int dest)
 {
 	char buf[BUFSIZ], *path, *file;
 	ssize_t r, w;
 	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
-	int sock, dest;
+	int sock;
 
-	if (file = strrchr(item->selector, '/'))
-		++file;
-	else
-		file = item->selector;
+	if (dest < 0) {
+		if (file = strrchr(item->selector, '/'))
+			++file;
+		else
+			file = item->selector;
 
-	if (path = uiprompt("Download file to [%s]: ", file))
-		path[strlen(path)-1] = '\0';
-	else
-		path = xstrdup(file);
+		if (path = uiprompt("Download file to [%s]: ", file))
+			path[strlen(path)-1] = '\0';
+		else
+			path = xstrdup(file);
 
-	if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
-		printf("Can't open destination file %s: %s\n",
-		       path, strerror(errno));
-		errno = 0;
-		free(path);
-		return 0;
+		item->tag = path;
+
+		if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
+			printf("Can't open destination file %s: %s\n",
+			       path, strerror(errno));
+			errno = 0;
+			return 0;
+		}
 	}
-	free(path);
 
 	sock = connectto(item->host, item->port);
 	sendselector(sock, item->selector);
@@ -398,7 +406,7 @@ downloaditem(Item *item)
 	close(dest);
 	close(sock);
 
-	return (r == 0 && w > 0);
+	return (r == 0 && w == 0);
 }
 
 static int
@@ -452,6 +460,20 @@ plumb(char *url)
 }
 
 static int
+displayimg(Item *item)
+{
+	int tmpfd;
+
+	item->tag = xstrdup("/tmp/sacc/img-XXXXXX");
+
+	if ((tmpfd = mkstemp(item->tag)) < 0)
+		die("mkstemp: %s: %s", item->tag, strerror(errno));
+
+	if (downloaditem(item, tmpfd))
+		plumb(item->tag);
+}
+
+static int
 dig(Item *entry, Item *item)
 {
 	if (item->raw) /* already in cache */
@@ -484,7 +506,7 @@ dig(Item *entry, Item *item)
 	case '9':
 	case 'g':
 	case 'I':
-		if (!downloaditem(item))
+		if (!displayimg(item))
 			return 0;
 		break;
 	default:
@@ -597,7 +619,7 @@ moldentry(char *url)
 	entry->host = host;
 	entry->port = port;
 	entry->entry = entry;
-	entry->raw = entry->dat = NULL;
+	entry->raw = entry->tag = entry->dat = NULL;
 
 	return entry;
 }
@@ -606,6 +628,7 @@ static void
 cleanup(void)
 {
 	clearitem(mainentry);
+	rmdir("/tmp/sacc");
 	free(mainentry);
 	free(mainurl);
 	uicleanup();
@@ -616,6 +639,8 @@ setup(void)
 {
 	setenv("PAGER", "more", 0);
 	atexit(cleanup);
+	if (mkdir("/tmp/sacc", S_IRWXU) < 0 && errno != EEXIST)
+		die("mkdir: %s: %s", "/tmp/sacc", errno);
 	uisetup();
 }
 
