@@ -22,6 +22,7 @@
 
 static char *mainurl;
 static Item *mainentry;
+static int parent = 1;
 
 void
 die(const char *fmt, ...)
@@ -113,7 +114,7 @@ clearitem(Item *item)
 		clear(&item->dat);
 	}
 
-	if ((tag = item->tag) &&
+	if (parent && (tag = item->tag) &&
 	    !strncmp(tag, "/tmp/sacc/img-", 14) && strlen(tag) == 20)
 		unlink(tag);
 
@@ -176,6 +177,7 @@ displaytextitem(Item *item)
 		fprintf(stderr, "Couldn't fork.\n");
 		return;
 	case 0:
+		parent = 0;
 		pagerin = popen("$PAGER", "we");
 		fputs(item->raw, pagerin);
 		status = pclose(pagerin);
@@ -454,6 +456,7 @@ plumb(char *url)
 		fprintf(stderr, "Couldn't fork.\n");
 		return;
 	case 0:
+		parent = 0;
 		if (execlp("xdg-open", "xdg-open", url, NULL) < 0)
 			die("execlp: %s", strerror(errno));
 	}
@@ -464,13 +467,19 @@ displayimg(Item *item)
 {
 	int tmpfd;
 
-	item->tag = xstrdup("/tmp/sacc/img-XXXXXX");
+	if (!item->tag) {
+		item->tag = xstrdup("/tmp/sacc/img-XXXXXX");
 
-	if ((tmpfd = mkstemp(item->tag)) < 0)
-		die("mkstemp: %s: %s", item->tag, strerror(errno));
+		if ((tmpfd = mkstemp(item->tag)) < 0)
+			die("mkstemp: %s: %s", item->tag, strerror(errno));
 
-	if (downloaditem(item, tmpfd))
-		plumb(item->tag);
+		if (!downloaditem(item, tmpfd)) {
+			clear(&item->tag);
+			return 0;
+		}
+	}
+
+	plumb(item->tag);
 }
 
 static int
@@ -627,7 +636,8 @@ static void
 cleanup(void)
 {
 	clearitem(mainentry);
-	rmdir("/tmp/sacc");
+	if (parent)
+		rmdir("/tmp/sacc");
 	free(mainentry);
 	free(mainurl);
 	uicleanup();
