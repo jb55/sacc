@@ -613,13 +613,12 @@ moldentry(char *url)
 	if (*host == '\0' || *port == '\0' || ipv6)
 		die("Can't parse url");
 
-	entry = xmalloc(sizeof(Item));
+	entry = xcalloc(sizeof(Item));
 	entry->type = gopherpath[0];
 	entry->username = entry->selector = ++gopherpath;
 	entry->host = host;
 	entry->port = port;
 	entry->entry = entry;
-	entry->raw = entry->tag = entry->dat = NULL;
 
 	return entry;
 }
