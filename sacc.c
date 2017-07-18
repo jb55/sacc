@@ -438,6 +438,19 @@ searchselector(Item *item)
 	return selector;
 }
 
+static void
+plumb(char *url)
+{
+	switch (fork()) {
+	case -1:
+		fprintf(stderr, "Couldn't fork.\n");
+		return;
+	case 0:
+		if (execlp("xdg-open", "xdg-open", url, NULL) < 0)
+			die("execlp: %s", strerror(errno));
+	}
+}
+
 static int
 dig(Item *entry, Item *item)
 {
@@ -450,7 +463,7 @@ dig(Item *entry, Item *item)
 	switch (item->type) {
 	case 'h': /* fallthrough */
 		if (!strncmp(item->selector, "URL:", 4)) {
-			item->dat = item->selector+4;
+			plumb(item->selector+4);
 			return 0;
 		}
 	case '0':
