@@ -20,6 +20,8 @@
 
 #include "common.h"
 
+#include "config.h"
+
 static char *mainurl;
 static Item *mainentry;
 static int parent = 1;
@@ -471,7 +473,7 @@ plumb(char *url)
 		return;
 	case 0:
 		parent = 0;
-		if (execlp("xdg-open", "xdg-open", url, NULL) < 0)
+		if (execlp(plumber, plumber, url, NULL) < 0)
 			die("execlp: %s", strerror(errno));
 	}
 }
