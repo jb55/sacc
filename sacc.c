@@ -463,7 +463,7 @@ plumb(char *url)
 }
 
 static int
-displayimg(Item *item)
+plumbitem(Item *item)
 {
 	int tmpfd;
 
@@ -513,9 +513,12 @@ dig(Item *entry, Item *item)
 	case '5':
 	case '6':
 	case '9':
+		if (!downloaditem(item))
+			return 0;
+		break;
 	case 'g':
 	case 'I':
-		if (!displayimg(item))
+		if (!plumbitem(item))
 			return 0;
 		break;
 	default:
