@@ -25,6 +25,7 @@ struct dir {
 void die(const char *fmt, ...);
 void display(Item *item);
 Item *selectitem(Item *entry);
+void status(char *fmt, ...);
 const char *typedisplay(char t);
 void uicleanup(void);
 char *uiprompt(char *fmt, ...);

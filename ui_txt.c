@@ -56,6 +56,21 @@ ndigits(size_t n)
 	return (n < 10) ? 1 : (n < 100) ? 2 : 3;
 }
 
+void
+status(char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	vprintf(fmt, arg);
+	va_end(arg);
+
+	printf(" <Press Key to continue>");
+	fflush(stdout);
+
+	getchar();
+}
+
 static void
 printstatus(Item *item, char c)
 {

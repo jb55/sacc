@@ -118,6 +118,29 @@ help(Item *entry)
 	return &item;
 }
 
+void
+status(char *fmt, ...)
+{
+	va_list ap;
+
+	putp(tparm(save_cursor));
+
+	putp(tparm(cursor_address, lines-1, 0));
+	putp(tparm(enter_standout_mode));
+
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+
+	printf(" <Press Key to continue>");
+	getchar();
+
+	putp(tparm(exit_standout_mode));
+
+	putp(tparm(restore_cursor));
+	fflush(stdout);
+}
+
 static void
 displaystatus(Item *item)
 {

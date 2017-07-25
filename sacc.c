@@ -341,8 +341,10 @@ connectto(const char *host, const char *port)
 	struct addrinfo *addrs, *addr;
 	int sock, r;
 
-	if (r = getaddrinfo(host, port, &hints, &addrs))
-		die("Can't resolve hostname “%s”: %s", host, gai_strerror(r));
+	if (r = getaddrinfo(host, port, &hints, &addrs)) {
+		status("Can't resolve hostname “%s”: %s", host, gai_strerror(r));
+		return -1;
+	}
 
 	for (addr = addrs; addr; addr = addr->ai_next) {
 		if ((sock = socket(addr->ai_family, addr->ai_socktype,
@@ -354,10 +356,14 @@ connectto(const char *host, const char *port)
 		}
 		break;
 	}
-	if (sock < 0)
-		die("Can't open socket: %s", strerror(errno));
-	if (r < 0)
-		die("Can't connect to: %s:%s: %s", host, port, strerror(errno));
+	if (sock < 0) {
+		status("Can't open socket: %s", strerror(errno));
+		return -1;
+	}
+	if (r < 0) {
+		status("Can't connect to: %s:%s: %s", host, port, strerror(errno));
+		return -1;
+	}
 
 	freeaddrinfo(addrs);
 
@@ -372,7 +378,8 @@ download(Item *item, int dest)
 	int src;
 
 	if (!item->tag) {
-		src = connectto(item->host, item->port);
+		if ((src = connectto(item->host, item->port)) < 0)
+			return 0;
 		sendselector(src, item->selector);
 	} else if ((src = open(item->tag, O_RDONLY)) < 0) {
 		printf("Can't open source file %s: %s\n",
@@ -446,7 +453,8 @@ fetchitem(Item *item)
 {
 	int sock;
 
-	sock = connectto(item->host, item->port);
+	if ((sock = connectto(item->host, item->port)) < 0)
+		return 0;
 	sendselector(sock, item->selector);
 	item->raw = getrawitem(sock);
 	close(sock);
