@@ -12,8 +12,10 @@ all: $(BIN)
 config.h:
 	cp config.def.h config.h
 
-$(BIN): config.h config.mk common.h $(OBJ)
+$(BIN): $(OBJ)
 	$(CC) $(OBJ) $(SACCLDFLAGS) -o $@
+
+$(OBJ): config.h config.mk common.h
 
 clean:
 	rm -f $(BIN) $(OBJ)
