@@ -363,33 +363,11 @@ connectto(const char *host, const char *port)
 }
 
 static int
-downloaditem(Item *item, int dest)
+download(Item *item, int dest)
 {
-	char buf[BUFSIZ], *path, *file;
+	char buf[BUFSIZ];
 	ssize_t r, w;
-	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
 	int sock;
-
-	if (dest < 0) {
-		if (file = strrchr(item->selector, '/'))
-			++file;
-		else
-			file = item->selector;
-
-		if (path = uiprompt("Download file to [%s]: ", file))
-			path[strlen(path)-1] = '\0';
-		else
-			path = xstrdup(file);
-
-		item->tag = path;
-
-		if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
-			printf("Can't open destination file %s: %s\n",
-			       path, strerror(errno));
-			errno = 0;
-			return 0;
-		}
-	}
 
 	sock = connectto(item->host, item->port);
 	sendselector(sock, item->selector);
@@ -405,10 +383,46 @@ downloaditem(Item *item, int dest)
 		errno = 0;
 	}
 
-	close(dest);
 	close(sock);
 
 	return (r == 0 && w == 0);
+}
+
+static void
+downloaditem(Item *item)
+{
+	char *file, *path;
+	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
+	int dest;
+
+	if (file = strrchr(item->selector, '/'))
+		++file;
+	else
+		file = item->selector;
+
+	if (!(path = uiprompt("Download to [%s] (^D cancel): ", file)))
+		return;
+
+	if (path[1])
+		path[strlen(path)-1] = '\0';
+	else
+		path = xstrdup(file);
+
+	if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
+		printf("Can't open destination file %s: %s\n",
+		       path, strerror(errno));
+		errno = 0;
+		goto cleanup;
+	}
+
+	if (!download(item, dest))
+		goto cleanup;
+
+	item->tag = path;
+	return;
+cleanup:
+	free(path);
+	return;
 }
 
 static int
@@ -462,24 +476,51 @@ plumb(char *url)
 	}
 }
 
-static int
+static void
 plumbitem(Item *item)
 {
-	int tmpfd;
+	char *file, *path;
+	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
+	int dest;
 
 	if (!item->tag) {
-		item->tag = xstrdup("/tmp/sacc/img-XXXXXX");
+		if (file = strrchr(item->selector, '/'))
+			++file;
+		else
+			file = item->selector;
 
-		if ((tmpfd = mkstemp(item->tag)) < 0)
-			die("mkstemp: %s: %s", item->tag, strerror(errno));
+		path = uiprompt("Download %s to (^D cancel, <empty> plumb): ",
+		                file);
+		if (!path)
+			return;
+		if (path[1]) {
+			path[strlen(path)-1] = '\0';
+			dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode);
+			if (dest < 0) {
+				printf("Can't open destination file %s: %s\n",
+				       path, strerror(errno));
+				errno = 0;
+				goto cleanup;
+			}
+		} else {
+			path = xstrdup("/tmp/sacc/img-XXXXXX");
 
-		if (!downloaditem(item, tmpfd)) {
-			clear(&item->tag);
-			return 0;
+			if ((dest = mkstemp(path)) < 0)
+				die("mkstemp: %s: %s", path, strerror(errno));
 		}
+
+		if (!download(item, dest))
+			goto cleanup;
+
+		item->tag = path;
 	}
 
 	plumb(item->tag);
+	return;
+
+cleanup:
+	free(path);
+	return;
 }
 
 static int
@@ -487,7 +528,6 @@ dig(Item *entry, Item *item)
 {
 	if (item->raw) /* already in cache */
 		return item->type;
-
 	if (!item->entry)
 		item->entry = entry ? entry : item;
 
@@ -513,14 +553,12 @@ dig(Item *entry, Item *item)
 	case '5':
 	case '6':
 	case '9':
-		if (!downloaditem(item))
-			return 0;
-		break;
+		downloaditem(item);
+		return 0;
 	case 'g':
 	case 'I':
-		if (!plumbitem(item))
-			return 0;
-		break;
+		plumbitem(item);
+		return 0;
 	default:
 		fprintf(stderr, "Type %c (%s) not supported\n",
 		        item->type, typedisplay(item->type));

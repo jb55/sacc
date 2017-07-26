@@ -81,7 +81,7 @@ uiprompt(char *fmt, ...)
 	putp(tparm(restore_cursor));
 	fflush(stdout);
 
-	if (r > 1)
+	if (r > 0)
 		return input;
 
 	free(input);

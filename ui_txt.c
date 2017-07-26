@@ -82,7 +82,7 @@ uiprompt(char *fmt, ...)
 
 	fflush(stdout);
 
-	if (getline(&input, &n, stdin) > 1)
+	if (getline(&input, &n, stdin))
 		return input;
 
 	free(input);
