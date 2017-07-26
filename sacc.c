@@ -369,12 +369,19 @@ download(Item *item, int dest)
 {
 	char buf[BUFSIZ];
 	ssize_t r, w;
-	int sock;
+	int src;
 
-	sock = connectto(item->host, item->port);
-	sendselector(sock, item->selector);
+	if (!item->tag) {
+		src = connectto(item->host, item->port);
+		sendselector(src, item->selector);
+	} else if ((src = open(item->tag, O_RDONLY)) < 0) {
+		printf("Can't open source file %s: %s\n",
+		       item->tag, strerror(errno));
+		errno = 0;
+		return 0;
+	}
 
-	while ((r = read(sock, buf, BUFSIZ)) > 0) {
+	while ((r = read(src, buf, BUFSIZ)) > 0) {
 		while ((w = write(dest, buf, r)) > 0)
 			r -= w;
 	}
@@ -385,7 +392,7 @@ download(Item *item, int dest)
 		errno = 0;
 	}
 
-	close(sock);
+	close(src);
 
 	return (r == 0 && w == 0);
 }
@@ -393,7 +400,7 @@ download(Item *item, int dest)
 static void
 downloaditem(Item *item)
 {
-	char *file, *path;
+	char *file, *path, *tag;
 	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
 	int dest;
 
@@ -410,6 +417,14 @@ downloaditem(Item *item)
 	else
 		path = xstrdup(file);
 
+	if (tag = item->tag) {
+		if (access(tag, R_OK) < 0) {
+			clear(&item->tag);
+		} else if (!strcmp(tag, path)) {
+			goto cleanup;
+		}
+	}
+
 	if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
 		printf("Can't open destination file %s: %s\n",
 		       path, strerror(errno));
@@ -420,7 +435,8 @@ downloaditem(Item *item)
 	if (!download(item, dest))
 		goto cleanup;
 
-	item->tag = path;
+	if (!item->tag)
+		item->tag = path;
 	return;
 cleanup:
 	free(path);
