@@ -481,45 +481,56 @@ plumb(char *url)
 static void
 plumbitem(Item *item)
 {
-	char *file, *path;
+	char *file, *path, *tag;
 	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
 	int dest;
 
-	if (!item->tag) {
-		if (file = strrchr(item->selector, '/'))
-			++file;
-		else
-			file = item->selector;
+	if (file = strrchr(item->selector, '/'))
+		++file;
+	else
+		file = item->selector;
 
-		path = uiprompt("Download %s to (^D cancel, <empty> plumb): ",
-		                file);
-		if (!path)
-			return;
-		if (path[1]) {
-			path[strlen(path)-1] = '\0';
-			dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode);
-			if (dest < 0) {
-				printf("Can't open destination file %s: %s\n",
-				       path, strerror(errno));
-				errno = 0;
-				goto cleanup;
-			}
-		} else {
+	path = uiprompt("Download %s to (^D cancel, <empty> plumb): ",
+	                file);
+	if (!path)
+		return;
+
+	if ((tag = item->tag) && access(tag, R_OK) < 0) {
+		clear(&item->tag);
+		tag = NULL;
+	}
+
+	if (path[1]) {
+		path[strlen(path)-1] = '\0';
+
+		if (tag && !strcmp(tag, path))
+			goto cleanup;
+
+		if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
+			printf("Can't open destination file %s: %s\n",
+			       path, strerror(errno));
+			errno = 0;
+			goto cleanup;
+		}
+	} else {
+		clear(&path);
+
+		if (!tag) {
 			path = xstrdup("/tmp/sacc/img-XXXXXX");
 
 			if ((dest = mkstemp(path)) < 0)
 				die("mkstemp: %s: %s", path, strerror(errno));
 		}
-
-		if (!download(item, dest))
-			goto cleanup;
-
-		item->tag = path;
 	}
+
+	if (path && (!download(item, dest) || tag))
+		goto cleanup;
+
+	if (!tag)
+		item->tag = path;
 
 	plumb(item->tag);
 	return;
-
 cleanup:
 	free(path);
 	return;
