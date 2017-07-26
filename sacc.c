@@ -463,23 +463,6 @@ fetchitem(Item *item)
 	return (item->raw != NULL);
 }
 
-static char *
-searchselector(Item *item)
-{
-	char *input, *selector = NULL;
-	size_t n;
-
-	if (input = uiprompt("Enter search string: ")) {
-		selector = item->selector;
-		n = strlen(selector) + 1 + strlen(input);
-		item->selector = xmalloc(n);
-		snprintf(item->selector, n, "%s\t%s", selector, input);
-		free(input);
-	}
-
-	return selector;
-}
-
 static void
 plumb(char *url)
 {
@@ -597,11 +580,52 @@ dig(Item *entry, Item *item)
 	return item->type;
 }
 
+static char *
+searchselector(Item *item)
+{
+	char *pexp, *exp, *tag, *selector = item->selector;
+	size_t n = strlen(selector);
+
+	if ((tag = item->tag) && !strncmp(tag, selector, n))
+		pexp = tag + n+1;
+	else
+		pexp = "";
+
+	if (!(exp = uiprompt("Enter search string (^D cancel) [%s]: ", pexp)))
+		return NULL;
+
+	if (strcmp(exp, pexp) && exp[1]) {
+		n += 1 + strlen(exp);
+		tag = xmalloc(n);
+		snprintf(tag, n, "%s\t%s", selector, exp);
+	}
+
+	free(exp);
+	return tag;
+}
+
+static int
+searchitem(Item *entry, Item *item)
+{
+	char *sel, *selector;
+
+	if (!(sel = searchselector(item)))
+		return 0;
+
+	if (sel != item->tag) {
+		clearitem(item);
+		selector = item->selector;
+		item->selector = item->tag = sel;
+		dig(entry, item);
+		item->selector = selector;
+	}
+	return (item->dat != NULL);
+}
+
 static void
 delve(Item *hole)
 {
 	Item *entry = NULL;
-	char *selector;
 
 	while (hole) {
 		switch (hole->type) {
@@ -616,13 +640,8 @@ delve(Item *hole)
 				entry = hole;
 			break;
 		case '7':
-			if (selector = searchselector(hole)) {
-				clear(&hole->raw);
-				if (dig(entry, hole) && hole->dat)
-					entry = hole;
-				free(hole->selector);
-				hole->selector = selector;
-			}
+			if (searchitem(entry, hole))
+				entry = hole;
 			break;
 		case '4':
 		case '5':
