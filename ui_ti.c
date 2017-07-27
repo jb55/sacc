@@ -235,39 +235,40 @@ movecurline(Item *item, int l)
 }
 
 static void
-jumptoline(Item *entry, ssize_t offset)
+jumptoline(Item *entry, ssize_t line, int absolute)
 {
 	Dir *dir = entry->dat;
-	size_t nitems;
-	int plines = lines-2;
+	size_t lastitem;
+	int lastpagetop, plines = lines-2;
 
 	if (!dir)
 		return;
+	lastitem = dir->nitems-1;
 
-	nitems = dir->nitems;
+	if (line < 0)
+		line = 0;
+	if (line > lastitem)
+		line = lastitem;
 
-	if (offset <= 0) {
-		if (!dir->curline)
-			return;
-		dir->printoff = 0;
-		dir->curline = 0;
-	} else if (offset + plines < nitems) {
-		dir->printoff = offset;
-		dir->curline = offset;
-	} else if (dir->curline == nitems-1) {
+	if (dir->curline == line)
 		return;
-	} else if (nitems < plines) {
-		dir->curline = nitems-1;
-	} else if (offset == nitems) {
-		dir->printoff = nitems-1 - plines;
-		dir->curline = nitems-1;
-	} else {
-		offset = nitems-1 - plines;
-		if (dir->printoff == offset)
-			dir->curline = nitems-1;
-		else if (dir->curline < offset)
-			dir->curline = offset;
-		dir->printoff = offset;
+
+	if (lastitem <= plines) {              /* all items fit on one page */
+		dir->curline = line;
+	} else if (line == 0) {                /* jump to top */
+		if (absolute || dir->curline > plines || dir->printoff == 0)
+			dir->curline = 0;
+		dir->printoff = 0;
+	} else if (line + plines < lastitem) { /* jump before last page */
+		dir->curline = line;
+		dir->printoff = line;
+	} else {                               /* jump within the last page */
+		lastpagetop = lastitem - plines;
+		if (dir->printoff == lastpagetop || absolute)
+			dir->curline = line;
+		else if (dir->curline < lastpagetop)
+			dir->curline = lastpagetop;
+		dir->printoff = lastpagetop;
 	}
 
 	display(entry);
@@ -336,11 +337,11 @@ selectitem(Item *entry)
 			continue;
 		case _key_pgdown:
 		pgdown:
-			jumptoline(entry, dir->printoff + plines);
+			jumptoline(entry, dir->printoff + plines, 0);
 			continue;
 		case _key_end:
 		end:
-			jumptoline(entry, dir->nitems);
+			jumptoline(entry, dir->nitems, 0);
 			continue;
 		case _key_lnup:
 		lnup:
@@ -348,11 +349,11 @@ selectitem(Item *entry)
 			continue;
 		case _key_pgup:
 		pgup:
-			jumptoline(entry, dir->printoff - plines);
+			jumptoline(entry, dir->printoff - plines, 0);
 			continue;
 		case _key_home:
 		home:
-			jumptoline(entry, 0);
+			jumptoline(entry, 0, 0);
 			continue;
 		case _key_quit:
 		quit:
