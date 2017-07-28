@@ -75,6 +75,7 @@ uiprompt(char *fmt, ...)
 	va_list ap;
 	char *input = NULL;
 	size_t n = 0;
+	ssize_t r;
 
 	va_start(ap, fmt);
 	vprintf(fmt, ap);
@@ -82,8 +83,11 @@ uiprompt(char *fmt, ...)
 
 	fflush(stdout);
 
-	if (getline(&input, &n, stdin) > 0)
+	if ((r = getline(&input, &n, stdin)) > 0) {
+		if (input[r - 1] == '\n')
+			input[--r] = '\0';
 		return input;
+	}
 
 	free(input);
 	return NULL;

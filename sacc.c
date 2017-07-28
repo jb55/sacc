@@ -412,9 +412,7 @@ downloaditem(Item *item)
 	if (!(path = uiprompt("Download to [%s] (^D cancel): ", file)))
 		return;
 
-	if (path[1])
-		path[strlen(path)-1] = '\0';
-	else
+	if (!path[0])
 		path = xstrdup(file);
 
 	if (tag = item->tag) {
@@ -499,9 +497,7 @@ plumbitem(Item *item)
 		tag = NULL;
 	}
 
-	if (path[1]) {
-		path[strlen(path)-1] = '\0';
-
+	if (path[0]) {
 		if (tag && !strcmp(tag, path))
 			goto cleanup;
 
@@ -594,7 +590,7 @@ searchselector(Item *item)
 	if (!(exp = uiprompt("Enter search string (^D cancel) [%s]: ", pexp)))
 		return NULL;
 
-	if (strcmp(exp, pexp) && exp[1]) {
+	if (exp[0] && strcmp(exp, pexp)) {
 		n += 1 + strlen(exp);
 		tag = xmalloc(n);
 		snprintf(tag, n, "%s\t%s", selector, exp);
