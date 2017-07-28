@@ -81,14 +81,12 @@ uiprompt(char *fmt, ...)
 	putp(tparm(restore_cursor));
 	fflush(stdout);
 
-	if (r > 0) {
-		if (input[r - 1] == '\n')
-			input[--r] = '\0';
-		return input;
-	}
-
-	free(input);
-	return NULL;
+	if (r < 0)
+		clearerr(stdin);
+	else if (input[r - 1] == '\n')
+		input[--r] = '\0';
+	
+	return input;
 }
 
 static void

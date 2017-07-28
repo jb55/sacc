@@ -83,14 +83,12 @@ uiprompt(char *fmt, ...)
 
 	fflush(stdout);
 
-	if ((r = getline(&input, &n, stdin)) > 0) {
-		if (input[r - 1] == '\n')
-			input[--r] = '\0';
-		return input;
-	}
+	if ((r = getline(&input, &n, stdin)) < 0)
+		clearerr(stdin);
+	else if (input[r - 1] == '\n')
+		input[--r] = '\0';
 
-	free(input);
-	return NULL;
+	return input;
 }
 
 void
