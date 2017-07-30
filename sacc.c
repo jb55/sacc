@@ -176,7 +176,7 @@ displaytextitem(Item *item)
 	uicleanup();
 	switch (pid = fork()) {
 	case -1:
-		fprintf(stderr, "Couldn't fork.\n");
+		uistatus("Couldn't fork.");
 		return;
 	case 0:
 		parent = 0;
@@ -266,8 +266,10 @@ molddiritem(char *raw)
 	}
 	if (!strcmp(s, ".\r\n") || !strcmp(s, ".\n"))
 		--nitems;
-	if (!nitems)
+	if (!nitems) {
+		uistatus("Couldn't parse dir item");
 		return NULL;
+	}
 
 	dir = xmalloc(sizeof(Dir));
 	items = xreallocarray(items, nitems, sizeof(Item*));
@@ -302,15 +304,17 @@ getrawitem(int sock)
 		}
 	} while ((n = read(sock, buf, bs)) > 0);
 
-	if (n < 0)
-		die("Can't read socket: %s", strerror(errno));
-
 	*buf = '\0';
+
+	if (n < 0) {
+		uistatus("Can't read socket: %s", strerror(errno));
+		clear(&raw);
+	}
 
 	return raw;
 }
 
-static void
+static int
 sendselector(int sock, const char *selector)
 {
 	char *msg, *p;
@@ -325,9 +329,12 @@ sendselector(int sock, const char *selector)
 		ln -= n;
 		p += n;
 	}
+
 	free(msg);
 	if (n == -1)
-		die("Can't send message: %s", strerror(errno));
+		uistatus("Can't send message: %s", strerror(errno));
+
+	return n;
 }
 
 static int
@@ -378,11 +385,11 @@ download(Item *item, int dest)
 	int src;
 
 	if (!item->tag) {
-		if ((src = connectto(item->host, item->port)) < 0)
+		if ((src = connectto(item->host, item->port)) < 0 ||
+		    sendselector(src, item->selector) < 0)
 			return 0;
-		sendselector(src, item->selector);
 	} else if ((src = open(item->tag, O_RDONLY)) < 0) {
-		printf("Can't open source file %s: %s\n",
+		printf("Can't open source file %s: %s",
 		       item->tag, strerror(errno));
 		errno = 0;
 		return 0;
@@ -394,7 +401,7 @@ download(Item *item, int dest)
 	}
 
 	if (r < 0 || w < 0) {
-		printf("Error downloading file %s: %s\n",
+		printf("Error downloading file %s: %s",
 		       item->selector, strerror(errno));
 		errno = 0;
 	}
@@ -431,8 +438,8 @@ downloaditem(Item *item)
 	}
 
 	if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
-		printf("Can't open destination file %s: %s\n",
-		       path, strerror(errno));
+		uistatus("Can't open destination file %s: %s",
+		         path, strerror(errno));
 		errno = 0;
 		goto cleanup;
 	}
@@ -453,17 +460,15 @@ fetchitem(Item *item)
 {
 	int sock;
 
-	if ((sock = connectto(item->host, item->port)) < 0)
+	if ((sock = connectto(item->host, item->port)) < 0 ||
+	    sendselector(sock, item->selector) < 0)
 		return 0;
-	sendselector(sock, item->selector);
 	item->raw = getrawitem(sock);
 	close(sock);
 
-	if (!*item->raw) {
-		fputs("Empty response from server\n", stderr);
-		free(item->raw);
-		item->raw = NULL;
-		return 0;
+	if (item->raw && !*item->raw) {
+		uistatus("Empty response from server");
+		clear(&item->raw);
 	}
 
 	return (item->raw != NULL);
@@ -474,12 +479,12 @@ plumb(char *url)
 {
 	switch (fork()) {
 	case -1:
-		fprintf(stderr, "Couldn't fork.\n");
+		uistatus("Couldn't fork.");
 		return;
 	case 0:
 		parent = 0;
 		if (execlp(plumber, plumber, url, NULL) < 0)
-			die("execlp: %s", strerror(errno));
+			uistatus("execlp: plumb(%s): %s", url, strerror(errno));
 	}
 }
 
@@ -510,8 +515,8 @@ plumbitem(Item *item)
 			goto cleanup;
 
 		if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
-			printf("Can't open destination file %s: %s\n",
-			       path, strerror(errno));
+			uistatus("Can't open destination file %s: %s",
+			         path, strerror(errno));
 			errno = 0;
 			goto cleanup;
 		}
@@ -521,8 +526,10 @@ plumbitem(Item *item)
 		if (!tag) {
 			path = xstrdup("/tmp/sacc/img-XXXXXX");
 
-			if ((dest = mkstemp(path)) < 0)
-				die("mkstemp: %s: %s", path, strerror(errno));
+			if ((dest = mkstemp(path)) < 0) {
+				uistatus("mkstemp: %s: %s", path, strerror(errno));
+				goto cleanup;
+			}
 		}
 	}
 
@@ -560,10 +567,8 @@ dig(Item *entry, Item *item)
 	case '1':
 	case '+':
 	case '7':
-		if (!fetchitem(item) || !(item->dat = molddiritem(item->raw))) {
-			fputs("Couldn't parse dir item\n", stderr);
+		if (!fetchitem(item) || !(item->dat = molddiritem(item->raw)))
 			return 0;
-		}
 		break;
 	case '4':
 	case '5':
@@ -576,7 +581,7 @@ dig(Item *entry, Item *item)
 		plumbitem(item);
 		return 0;
 	default:
-		fprintf(stderr, "Type %c (%s) not supported\n",
+		uistatus("Type %c (%s) not supported",
 		        item->type, typedisplay(item->type));
 		return 0;
 	}
@@ -656,8 +661,8 @@ delve(Item *hole)
 			dig(entry, hole);
 			break;
 		case 0:
-			fprintf(stderr, "Couldn't get %s:%s/%c%s\n", hole->host,
-			                hole->port, hole->type, hole->selector);
+			uistatus("Couldn't get %s:%s/%c%s", hole->host,
+			         hole->port, hole->type, hole->selector);
 		}
 
 		if (!entry)
