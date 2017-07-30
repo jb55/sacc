@@ -342,7 +342,7 @@ connectto(const char *host, const char *port)
 	int sock, r;
 
 	if (r = getaddrinfo(host, port, &hints, &addrs)) {
-		status("Can't resolve hostname “%s”: %s", host, gai_strerror(r));
+		uistatus("Can't resolve hostname “%s”: %s", host, gai_strerror(r));
 		return -1;
 	}
 
@@ -357,11 +357,11 @@ connectto(const char *host, const char *port)
 		break;
 	}
 	if (sock < 0) {
-		status("Can't open socket: %s", strerror(errno));
+		uistatus("Can't open socket: %s", strerror(errno));
 		return -1;
 	}
 	if (r < 0) {
-		status("Can't connect to: %s:%s: %s", host, port, strerror(errno));
+		uistatus("Can't connect to: %s:%s: %s", host, port, strerror(errno));
 		return -1;
 	}
 
@@ -664,8 +664,8 @@ delve(Item *hole)
 			return;
 
 		do {
-			display(entry);
-			hole = selectitem(entry);
+			uidisplay(entry);
+			hole = uiselectitem(entry);
 		} while (hole == entry);
 	}
 }

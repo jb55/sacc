@@ -119,7 +119,7 @@ help(Item *entry)
 }
 
 void
-status(char *fmt, ...)
+uistatus(char *fmt, ...)
 {
 	va_list ap;
 
@@ -163,7 +163,7 @@ displaystatus(Item *item)
 }
 
 void
-display(Item *entry)
+uidisplay(Item *entry)
 {
 	Item **items;
 	Dir *dir;
@@ -295,12 +295,12 @@ jumptoline(Item *entry, ssize_t line, int absolute)
 		dir->printoff = lastpagetop;
 	}
 
-	display(entry);
+	uidisplay(entry);
 	return;
 }
 
 Item *
-selectitem(Item *entry)
+uiselectitem(Item *entry)
 {
 	Dir *dir;
 	int plines = lines-2;

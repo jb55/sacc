@@ -57,7 +57,7 @@ ndigits(size_t n)
 }
 
 void
-status(char *fmt, ...)
+uistatus(char *fmt, ...)
 {
 	va_list arg;
 
@@ -107,7 +107,7 @@ uiprompt(char *fmt, ...)
 }
 
 void
-display(Item *entry)
+uidisplay(Item *entry)
 {
 	Item **items;
 	Dir *dir;
@@ -133,7 +133,7 @@ display(Item *entry)
 }
 
 Item *
-selectitem(Item *entry)
+uiselectitem(Item *entry)
 {
 	Dir *dir;
 	static char c;
