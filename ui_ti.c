@@ -133,7 +133,7 @@ uistatus(char *fmt, ...)
 	vprintf(fmt, ap);
 	va_end(ap);
 
-	printf(" [Press a key to continue]");
+	printf(" [Press a key to continue ☃]");
 	getchar();
 
 	putp(tparm(exit_standout_mode));
