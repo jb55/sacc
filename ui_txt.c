@@ -65,7 +65,7 @@ uistatus(char *fmt, ...)
 	vprintf(fmt, arg);
 	va_end(arg);
 
-	printf(" <Press Key to continue>");
+	printf(" [Press Enter to continue]");
 	fflush(stdout);
 
 	getchar();
