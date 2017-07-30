@@ -35,6 +35,7 @@ uisetup(void)
 	tcsetattr(0, TCSANOW, &tsacc);
 
 	setupterm(NULL, 1, NULL);
+	putp(tparm(clear_screen));
 	putp(tparm(save_cursor));
 	putp(tparm(change_scroll_region, 0, lines-2));
 	putp(tparm(restore_cursor));
