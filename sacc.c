@@ -2,12 +2,13 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__) || \
-    defined(___FreeBSD__)
+    defined(__FreeBSD__)
 #include <sys/ioctl.h>
 #else
 #include <stropts.h>
