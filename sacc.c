@@ -605,7 +605,7 @@ searchselector(Item *item)
 		return NULL;
 
 	if (exp[0] && strcmp(exp, pexp)) {
-		n += 1 + strlen(exp);
+		n += strlen(exp) + 2;
 		tag = xmalloc(n);
 		snprintf(tag, n, "%s\t%s", selector, exp);
 	}
