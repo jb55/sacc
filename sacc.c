@@ -714,7 +714,7 @@ moldentry(char *url)
 		}
 	}
 
-	if (*host == '\0' || *port == '\0' || ipv6)
+	if (*host == '\0' || *port == '\0' || ipv6 || *gopherpath == '\0')
 		die("Can't parse url");
 
 	entry = xcalloc(sizeof(Item));
