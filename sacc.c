@@ -172,7 +172,7 @@ static void
 displaytextitem(Item *item)
 {
 	FILE *pagerin;
-	int pid, wpid, status;
+	int pid, wpid;
 
 	uicleanup();
 	switch (pid = fork()) {
@@ -183,11 +183,7 @@ displaytextitem(Item *item)
 		parent = 0;
 		pagerin = popen("$PAGER", "we");
 		fputs(item->raw, pagerin);
-		status = pclose(pagerin);
-		fputs("[Press Enter to continue]", stdout);
-		fflush(stdout);
-		getchar();
-		exit(status);
+		exit(pclose(pagerin));
 	default:
 		while ((wpid = wait(NULL)) >= 0 && wpid != pid)
 			;
