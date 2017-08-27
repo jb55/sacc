@@ -749,7 +749,7 @@ setup(void)
 	if ((devnullfd = open("/dev/null", O_WRONLY)) < 0)
 		die("open: /dev/null: %s", strerror(errno));
 	if (mkdir("/tmp/sacc", S_IRWXU) < 0 && errno != EEXIST)
-		die("mkdir: %s: %s", "/tmp/sacc", errno);
+		die("mkdir: %s: %s", "/tmp/sacc", strerror(errno));
 	uisetup();
 }
 
