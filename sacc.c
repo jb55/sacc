@@ -25,6 +25,7 @@
 
 static char *mainurl;
 static Item *mainentry;
+static int devnullfd;
 static int parent = 1;
 
 void
@@ -480,6 +481,8 @@ plumb(char *url)
 		return;
 	case 0:
 		parent = 0;
+		dup2(devnullfd, 1);
+		dup2(devnullfd, 2);
 		if (execlp(plumber, plumber, url, NULL) < 0)
 			uistatus("execlp: plumb(%s): %s", url, strerror(errno));
 	}
@@ -743,6 +746,8 @@ setup(void)
 {
 	setenv("PAGER", "more", 0);
 	atexit(cleanup);
+	if ((devnullfd = open("/dev/null", O_WRONLY)) < 0)
+		die("open: /dev/null: %s", strerror(errno));
 	if (mkdir("/tmp/sacc", S_IRWXU) < 0 && errno != EEXIST)
 		die("mkdir: %s: %s", "/tmp/sacc", errno);
 	uisetup();
