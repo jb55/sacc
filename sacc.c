@@ -744,8 +744,16 @@ cleanup(void)
 static void
 setup(void)
 {
+	int fd;
+
 	setenv("PAGER", "more", 0);
 	atexit(cleanup);
+	/* reopen stdin in case we're reading from a pipe */
+	if ((fd = open("/dev/tty", O_RDONLY)) < 0)
+		die("open: /dev/tty: %s", strerror(errno));
+	if (dup2(fd, 0) < 0)
+		die("dup2: /dev/tty, stdin: %s", strerror(errno));
+	close(fd);
 	if ((devnullfd = open("/dev/null", O_WRONLY)) < 0)
 		die("open: /dev/null: %s", strerror(errno));
 	if (mkdir("/tmp/sacc", S_IRWXU) < 0 && errno != EEXIST)
