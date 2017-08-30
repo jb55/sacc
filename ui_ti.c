@@ -101,6 +101,7 @@ help(Item *entry)
 		       "End, " S(_key_end) ": move to end of the page.\n"
 		       "Right, " S(_key_pgnext) ": view highlighted item.\n"
 		       "Left, " S(_key_pgprev) ": view previous item.\n"
+		       S(_key_uri) ": print item uri.\n"
 		       S(_key_help) ": show this help.\n"
 		       "^D, " S(_key_quit) ": exit sacc.\n"
 	};

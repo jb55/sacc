@@ -40,6 +40,7 @@ help(void)
 {
 	puts("Commands:\n"
 	     "N = [1-9]...: browse item N.\n"
+	     "uN...: print item N uri.\n"
 	     "0: browse previous item.\n"
 	     "n: show next page.\n"
 	     "p: show previous page.\n"
