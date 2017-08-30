@@ -175,8 +175,9 @@ displayuri(Item *item)
 		n = printf("%s: %s", item->username, item->selector);
 		break;
 	default:
-		n = printf("%s: %s:%s%s", item->username,
-		           item->host, item->port, item->selector);
+		n = printf("%s: %s:%s/%c%s", item->username,
+		           item->host, item->port, item->type,
+		           item->selector);
 		break;
 	}
 	putp(tparm(exit_standout_mode));
