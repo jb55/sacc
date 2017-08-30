@@ -132,6 +132,24 @@ uidisplay(Item *entry)
 	fflush(stdout);
 }
 
+void
+printuri(Item *item, size_t i)
+{
+	if (!item)
+		return;
+	switch (item->type) {
+	case 'i':
+		break;
+	case 'h':
+		printf("%zu: %s: %s\n", i, item->username, item->selector);
+		break;
+	default:
+		printf("%zu: %s: %s:%s%s\n", i, item->username,
+		       item->host, item->port, item->selector);
+		break;
+	}
+}
+
 Item *
 uiselectitem(Item *entry)
 {
@@ -147,8 +165,7 @@ uiselectitem(Item *entry)
 	if (!c)
 		c = 'h';
 
-	do {
-		item = -1;
+	for (;;) {
 		printstatus(entry, c);
 		fflush(stdout);
 
@@ -156,10 +173,21 @@ uiselectitem(Item *entry)
 			putchar('\n');
 			return NULL;
 		}
-		if (isdigit(*buf))
+		if (isdigit(*buf)) {
 			c = '\0';
-		else if (!strcmp(buf+1, "\n"))
+			nl = '\0';
+			if (sscanf(buf, "%d%c", &item, &nl) != 2 || nl != '\n')
+				item = -1;
+		} else if (!strcmp(buf+1, "\n")) {
+			item = -1;
 			c = *buf;
+		} else if (isdigit(*(buf+1))) {
+			nl = '\0';
+			if (sscanf(buf+1, "%d%c", &item, &nl) != 2 || nl != '\n')
+				item = -1;
+			else
+				c = *buf;
+		}
 
 		switch (c) {
 		case '\0':
@@ -193,6 +221,10 @@ uiselectitem(Item *entry)
 			if (entry->raw)
 				continue;
 			return entry;
+		case 'u':
+			if (item > 0 && item <= nitems)
+				printuri(dir->items[item-1], item);
+			continue;
 		case 'h':
 		case '?':
 			help();
@@ -205,10 +237,9 @@ uiselectitem(Item *entry)
 		if (*buf < '0' || *buf > '9')
 			continue;
 
-		nl = '\0';
-		if (sscanf(buf, "%d%c", &item, &nl) != 2 || nl != '\n')
-			item = -1;
-	} while (item < 0 || item > nitems);
+		if (item > 0 && item <= nitems);
+			break;
+	}
 
 	if (item > 0)
 		return dir->items[item-1];

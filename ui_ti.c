@@ -152,6 +152,30 @@ displaystatus(Item *item)
 	fflush(stdout);
 }
 
+static void
+displayuri(Item *item)
+{
+	putp(tparm(save_cursor));
+
+	putp(tparm(cursor_address, lines-1, 0));
+	putp(tparm(enter_standout_mode));
+	switch (item->type) {
+	case 'i':
+		break;
+	case 'h':
+		printf("%s: %s", item->username, item->selector);
+		break;
+	default:
+		printf("%s: %s:%s%s",
+		       item->username, item->host, item->port, item->selector);
+		break;
+	}
+	putp(tparm(exit_standout_mode));
+
+	putp(tparm(restore_cursor));
+	fflush(stdout);
+}
+
 void
 uidisplay(Item *entry)
 {
@@ -377,6 +401,10 @@ uiselectitem(Item *entry)
 			if (entry->raw)
 				continue;
 			return entry;
+		case _key_uri:
+			if (dir)
+				displayuri(dir->items[dir->curline]);
+			continue;
 		case _key_help: /* FALLTHROUGH */
 			return help(entry);
 		default:
