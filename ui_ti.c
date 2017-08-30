@@ -46,7 +46,7 @@ uiprompt(char *fmt, ...)
 	va_list ap;
 	char *input = NULL;
 	size_t n = 0;
-	ssize_t r;
+	ssize_t r = 0;
 
 	putp(tparm(save_cursor));
 
@@ -55,10 +55,12 @@ uiprompt(char *fmt, ...)
 	putp(tparm(enter_standout_mode));
 
 	va_start(ap, fmt);
-	vprintf(fmt, ap);
+	r += vprintf(fmt, ap);
 	va_end(ap);
 
 	putp(tparm(exit_standout_mode));
+
+	printf("%*s", columns-r, " ");
 
 	tsacc.c_lflag |= (ECHO|ICANON);
 	tcsetattr(0, TCSANOW, &tsacc);
@@ -112,6 +114,7 @@ void
 uistatus(char *fmt, ...)
 {
 	va_list ap;
+	int n = 0;
 
 	putp(tparm(save_cursor));
 
@@ -119,16 +122,17 @@ uistatus(char *fmt, ...)
 	putp(tparm(enter_standout_mode));
 
 	va_start(ap, fmt);
-	vprintf(fmt, ap);
+	n += vprintf(fmt, ap);
 	va_end(ap);
 
-	printf(" [Press a key to continue ☃]");
-	getchar();
-
+	n += printf(" [Press a key to continue ☃]");
 	putp(tparm(exit_standout_mode));
+	printf("%*s", columns-n, " ");
 
 	putp(tparm(restore_cursor));
 	fflush(stdout);
+
+	getchar();
 }
 
 static void
@@ -137,16 +141,18 @@ displaystatus(Item *item)
 	Dir *dir = item->dat;
 	size_t nitems = dir ? dir->nitems : 0;
 	unsigned long long printoff = dir ? dir->printoff : 0;
+	int n;
 
 	putp(tparm(save_cursor));
 
 	putp(tparm(cursor_address, lines-1, 0));
 	putp(tparm(enter_standout_mode));
-	printf("%3lld%%| %s:%s%s",
-	       (printoff + lines-1 >= nitems) ? 100 :
-	       (printoff + lines-1) * 100 / nitems,
-	       item->host, item->port, item->selector);
+	n = printf("%3lld%%| %s:%s%s",
+	           (printoff + lines-1 >= nitems) ? 100 :
+	           (printoff + lines-1) * 100 / nitems,
+	           item->host, item->port, item->selector);
 	putp(tparm(exit_standout_mode));
+	printf("%*s", columns-n, " ");
 
 	putp(tparm(restore_cursor));
 	fflush(stdout);
@@ -155,22 +161,26 @@ displaystatus(Item *item)
 static void
 displayuri(Item *item)
 {
+	int n;
+
+	if (item->type == 'i')
+		return;
+
 	putp(tparm(save_cursor));
 
 	putp(tparm(cursor_address, lines-1, 0));
 	putp(tparm(enter_standout_mode));
 	switch (item->type) {
-	case 'i':
-		break;
 	case 'h':
-		printf("%s: %s", item->username, item->selector);
+		n = printf("%s: %s", item->username, item->selector);
 		break;
 	default:
-		printf("%s: %s:%s%s",
-		       item->username, item->host, item->port, item->selector);
+		n = printf("%s: %s:%s%s", item->username,
+		           item->host, item->port, item->selector);
 		break;
 	}
 	putp(tparm(exit_standout_mode));
+	printf("%*s", columns-n, " ");
 
 	putp(tparm(restore_cursor));
 	fflush(stdout);
