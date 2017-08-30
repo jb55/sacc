@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <term.h>
 #include <termios.h>
 #include <unistd.h>
@@ -176,9 +177,15 @@ displayuri(Item *item)
 		n = printf("%s: %s", item->username, item->selector);
 		break;
 	default:
-		n = printf("%s: %s:%s/%c%s", item->username,
-		           item->host, item->port, item->type,
-		           item->selector);
+		if (!strcmp(item->port, "70")) {
+			n = printf("%s: gopher://%s/%c%s", item->username,
+			           item->host, item->type,
+			           item->selector);
+		} else {
+			n = printf("%s: gopher://%s:%s/%c%s", item->username,
+			           item->host, item->port, item->type,
+			           item->selector);
+		}
 		break;
 	}
 	putp(tparm(exit_standout_mode));

@@ -145,8 +145,15 @@ printuri(Item *item, size_t i)
 		printf("%zu: %s: %s\n", i, item->username, item->selector);
 		break;
 	default:
-		printf("%zu: %s: %s:%s/%c%s\n", i, item->username,
-		       item->host, item->port, item->type, item->selector);
+		if (!strcmp(item->port, "70")) {
+			printf("%zu: %s: gopher://%s/%c%s\n", i, item->username,
+			           item->host, item->type,
+			           item->selector);
+		} else {
+			printf("%zu: %s: gopher://%s:%s/%c%s\n", i, item->username,
+			           item->host, item->port, item->type,
+			           item->selector);
+		}
 		break;
 	}
 }
