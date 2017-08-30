@@ -136,8 +136,11 @@ uidisplay(Item *entry)
 void
 printuri(Item *item, size_t i)
 {
+	char *fmt;
+
 	if (!item)
 		return;
+
 	switch (item->type) {
 	case 'i':
 		break;
@@ -145,15 +148,11 @@ printuri(Item *item, size_t i)
 		printf("%zu: %s: %s\n", i, item->username, item->selector);
 		break;
 	default:
-		if (!strcmp(item->port, "70")) {
-			printf("%zu: %s: gopher://%s/%c%s\n", i, item->username,
-			           item->host, item->type,
-			           item->selector);
-		} else {
-			printf("%zu: %s: gopher://%s:%s/%c%s\n", i, item->username,
-			           item->host, item->port, item->type,
-			           item->selector);
-		}
+		fmt = strcmp(item->port, "70") ?
+		      "%zu: %s: gopher://%s:%6$s/%c%s\n" :
+		      "%zu: %s: gopher://%s/%c%s\n";
+		printf(fmt, i, item->username,
+		       item->host, item->type, item->selector, item->port);
 		break;
 	}
 }

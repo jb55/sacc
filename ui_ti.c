@@ -163,6 +163,7 @@ displaystatus(Item *item)
 static void
 displayuri(Item *item)
 {
+	char *fmt;
 	int n;
 
 	if (item->type == 'i')
@@ -177,15 +178,10 @@ displayuri(Item *item)
 		n = printf("%s: %s", item->username, item->selector);
 		break;
 	default:
-		if (!strcmp(item->port, "70")) {
-			n = printf("%s: gopher://%s/%c%s", item->username,
-			           item->host, item->type,
-			           item->selector);
-		} else {
-			n = printf("%s: gopher://%s:%s/%c%s", item->username,
-			           item->host, item->port, item->type,
-			           item->selector);
-		}
+		fmt = strcmp(item->port, "70") ? "%s: gopher://%s:%5$s/%c%s" :
+		                                 "%s: gopher://%s/%c%s";
+		n = printf(fmt, item->username,
+		           item->host, item->type, item->selector, item->port);
 		break;
 	}
 	putp(tparm(exit_standout_mode));
