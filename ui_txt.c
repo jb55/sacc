@@ -144,8 +144,8 @@ printuri(Item *item, size_t i)
 		printf("%zu: %s: %s\n", i, item->username, item->selector);
 		break;
 	default:
-		printf("%zu: %s: %s:%s%s\n", i, item->username,
-		       item->host, item->port, item->selector);
+		printf("%zu: %s: %s:%s/%c%s\n", i, item->username,
+		       item->host, item->port, item->type, item->selector);
 		break;
 	}
 }
