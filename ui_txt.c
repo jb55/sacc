@@ -99,10 +99,13 @@ uiprompt(char *fmt, ...)
 
 	fflush(stdout);
 
-	if ((r = getline(&input, &n, stdin)) < 0)
+	if ((r = getline(&input, &n, stdin)) < 0) {
 		clearerr(stdin);
-	else if (input[r - 1] == '\n')
+		clear(&input);
+		putchar('\n');
+	} else if (input[r - 1] == '\n') {
 		input[--r] = '\0';
+	}
 
 	return input;
 }

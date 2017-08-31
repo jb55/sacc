@@ -74,10 +74,12 @@ uiprompt(char *fmt, ...)
 	putp(tparm(restore_cursor));
 	fflush(stdout);
 
-	if (r < 0)
+	if (r < 0) {
 		clearerr(stdin);
-	else if (input[r - 1] == '\n')
+		clear(&input);
+	} else if (input[r - 1] == '\n') {
 		input[--r] = '\0';
+	}
 	
 	return input;
 }
