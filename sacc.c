@@ -119,7 +119,7 @@ clearitem(Item *item)
 	}
 
 	if (parent && (tag = item->tag) &&
-	    !strncmp(tag, "/tmp/sacc/img-", 14) && strlen(tag) == 20)
+	    !strncmp(tag, tmpdir, strlen(tmpdir)))
 		unlink(tag);
 
 	clear(&item->tag);
@@ -515,9 +515,9 @@ plumbitem(Item *item)
 	if (!path[0]) {
 		clear(&path);
 		if (!tag) {
-			n = snprintf(NULL, 0, "%s/%s", "/tmp/sacc", file);
+			n = snprintf(NULL, 0, "%s/%s", tmpdir, file);
 			path = xmalloc(++n);
-			snprintf(path, n, "%s/%s", "/tmp/sacc", file);
+			snprintf(path, n, "%s/%s", tmpdir, file);
 		}
 	}
 
@@ -733,7 +733,7 @@ cleanup(void)
 {
 	clearitem(mainentry);
 	if (parent)
-		rmdir("/tmp/sacc");
+		rmdir(tmpdir);
 	free(mainentry);
 	free(mainurl);
 	uicleanup();
@@ -754,8 +754,8 @@ setup(void)
 	close(fd);
 	if ((devnullfd = open("/dev/null", O_WRONLY)) < 0)
 		die("open: /dev/null: %s", strerror(errno));
-	if (mkdir("/tmp/sacc", S_IRWXU) < 0 && errno != EEXIST)
-		die("mkdir: %s: %s", "/tmp/sacc", strerror(errno));
+	if (mkdir(tmpdir, S_IRWXU) < 0 && errno != EEXIST)
+		die("mkdir: %s: %s", tmpdir, strerror(errno));
 	uisetup();
 }
 

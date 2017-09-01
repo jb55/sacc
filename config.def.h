@@ -16,3 +16,6 @@
 
 /* default plumber */
 static char *plumber = "xdg-open";
+
+/* temporary directory */
+static char *tmpdir = "/tmp/sacc";
