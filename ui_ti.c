@@ -15,6 +15,10 @@
 
 static struct termios tsave;
 static struct termios tsacc;
+#if defined(__NetBSD__)
+#undef tparm
+#define tparm tiparm
+#endif
 
 void
 uisetup(void)
