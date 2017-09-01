@@ -2,7 +2,9 @@
 
 /* Screen UI navigation keys */
 #define _key_lndown	'j' /* move one line down */
+#define _key_entrydown	'J' /* move to next link */
 #define _key_lnup	'k' /* move one line up */
+#define _key_entryup	'K' /* move to next link */
 #define _key_pgdown	' ' /* move one screen down */
 #define _key_pgup	'b' /* move one screen up */
 #define _key_home	'g' /* move to the top of page */

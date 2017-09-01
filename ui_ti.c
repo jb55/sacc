@@ -334,6 +334,25 @@ jumptoline(Item *entry, ssize_t line, int absolute)
 	return;
 }
 
+static ssize_t
+nearentry(Item *entry, int direction)
+{
+	Dir *dir = entry->dat;
+	size_t item, lastitem;
+
+	if (!dir)
+		return -1;
+	lastitem = dir->nitems;
+	item = dir->curline + direction;
+
+	for (; item >= 0 && item < lastitem; item += direction) {
+		if (dir->items[item]->type != 'i')
+			return item;
+	}
+
+	return dir->curline;
+}
+
 Item *
 uiselectitem(Item *entry)
 {
@@ -394,6 +413,9 @@ uiselectitem(Item *entry)
 		lndown:
 			movecurline(entry, 1);
 			continue;
+		case _key_entrydown:
+			jumptoline(entry, nearentry(entry, 1), 1);
+			continue;
 		case _key_pgdown:
 		pgdown:
 			jumptoline(entry, dir->printoff + plines, 0);
@@ -405,6 +427,9 @@ uiselectitem(Item *entry)
 		case _key_lnup:
 		lnup:
 			movecurline(entry, -1);
+			continue;
+		case _key_entryup:
+			jumptoline(entry, nearentry(entry, -1), 1);
 			continue;
 		case _key_pgup:
 		pgup:
