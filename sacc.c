@@ -493,7 +493,7 @@ plumbitem(Item *item)
 {
 	char *file, *path, *tag;
 	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
-	int dest;
+	int n, dest, plumbitem;
 
 	if (file = strrchr(item->selector, '/'))
 		++file;
@@ -510,36 +510,34 @@ plumbitem(Item *item)
 		tag = NULL;
 	}
 
-	if (path[0]) {
-		if (tag && !strcmp(tag, path))
-			goto cleanup;
+	plumbitem = path[0] ? 0 : 1;
 
+	if (!path[0]) {
+		clear(&path);
+		if (!tag) {
+			n = snprintf(NULL, 0, "%s/%s", "/tmp/sacc", file);
+			path = xmalloc(++n);
+			snprintf(path, n, "%s/%s", "/tmp/sacc", file);
+		}
+	}
+
+	if (path && (!tag || strcmp(tag, path))) {
 		if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
 			uistatus("Can't open destination file %s: %s",
 			         path, strerror(errno));
 			errno = 0;
 			goto cleanup;
 		}
-	} else {
-		clear(&path);
-
-		if (!tag) {
-			path = xstrdup("/tmp/sacc/img-XXXXXX");
-
-			if ((dest = mkstemp(path)) < 0) {
-				uistatus("mkstemp: %s: %s", path, strerror(errno));
-				goto cleanup;
-			}
-		}
+		if (!download(item, dest) || tag)
+			goto cleanup;
 	}
-
-	if (path && (!download(item, dest) || tag))
-		goto cleanup;
 
 	if (!tag)
 		item->tag = path;
 
-	plumb(item->tag);
+	if (plumbitem)
+		plumb(item->tag);
+
 	return;
 cleanup:
 	free(path);
