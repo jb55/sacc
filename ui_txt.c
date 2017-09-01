@@ -172,10 +172,10 @@ uiselectitem(Item *entry)
 		return NULL;
 
 	nitems = dir ? dir->nitems : 0;
-	if (!c)
-		c = 'h';
 
 	for (;;) {
+		if (!c)
+			c = 'h';
 		printstatus(entry, c);
 		fflush(stdout);
 
@@ -244,10 +244,7 @@ uiselectitem(Item *entry)
 			continue;
 		}
 
-		if (*buf < '0' || *buf > '9')
-			continue;
-
-		if (item > 0 && item <= nitems);
+		if (item >= 0 && item <= nitems)
 			break;
 	}
 
