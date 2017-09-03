@@ -147,6 +147,7 @@ static void
 displaystatus(Item *item)
 {
 	Dir *dir = item->dat;
+	char *fmt;
 	size_t nitems = dir ? dir->nitems : 0;
 	unsigned long long printoff = dir ? dir->printoff : 0;
 	int n;
@@ -155,10 +156,12 @@ displaystatus(Item *item)
 
 	putp(tparm(cursor_address, lines-1, 0));
 	putp(tparm(enter_standout_mode));
-	n = printf("%3lld%%| %s:%s%s",
+	fmt = (strcmp(item->port, "70") && strcmp(item->port, "gopher")) ?
+	      "%3lld%%| %s:%5$s/%c%s" : "%3lld%%| %s/%c%s";
+	n = printf(fmt,
 	           (printoff + lines-1 >= nitems) ? 100 :
 	           (printoff + lines-1) * 100 / nitems,
-	           item->host, item->port, item->selector);
+	           item->host, item->type, item->selector, item->port);
 	putp(tparm(exit_standout_mode));
 	printf("%*s", columns-n, " ");
 
