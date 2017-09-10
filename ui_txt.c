@@ -145,6 +145,7 @@ printuri(Item *item, size_t i)
 		return;
 
 	switch (item->type) {
+	case 0:
 	case 'i':
 		break;
 	case 'h':

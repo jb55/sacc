@@ -175,7 +175,7 @@ displayuri(Item *item)
 	char *fmt;
 	int n;
 
-	if (item->type == 'i')
+	if (item->type == 0 || item->type == 'i')
 		return;
 
 	putp(tparm(save_cursor));
