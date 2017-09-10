@@ -295,7 +295,7 @@ getrawitem(int sock)
 	do {
 		bs -= n;
 		buf += n;
-		if (bs <= 1) {
+		if (bs < 1) {
 			raw = xreallocarray(raw, ++bn, BUFSIZ);
 			buf = raw + (bn-1) * BUFSIZ;
 			bs = BUFSIZ;
