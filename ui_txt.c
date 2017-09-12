@@ -113,7 +113,7 @@ uiprompt(char *fmt, ...)
 void
 uidisplay(Item *entry)
 {
-	Item **items;
+	Item *items;
 	Dir *dir;
 	size_t i, lines, nitems;
 	int nd;
@@ -130,7 +130,7 @@ uidisplay(Item *entry)
 
 	for (i = dir->printoff; i < nitems && i < lines; ++i) {
 		printf("%*zu %s %s\n",
-		       nd, i+1, typedisplay(items[i]->type), items[i]->username);
+		       nd, i+1, typedisplay(items[i].type), items[i].username);
 	}
 
 	fflush(stdout);
@@ -234,7 +234,7 @@ uiselectitem(Item *entry)
 			return entry;
 		case 'u':
 			if (item > 0 && item <= nitems)
-				printuri(dir->items[item-1], item);
+				printuri(&dir->items[item-1], item);
 			continue;
 		case 'h':
 		case '?':
@@ -250,7 +250,7 @@ uiselectitem(Item *entry)
 	}
 
 	if (item > 0)
-		return dir->items[item-1];
+		return &dir->items[item-1];
 
 	return entry->entry;
 }

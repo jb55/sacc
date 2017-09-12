@@ -101,7 +101,7 @@ static void
 clearitem(Item *item)
 {
 	Dir *dir;
-	Item **items;
+	Item *items;
 	char *tag;
 	size_t i;
 
@@ -110,10 +110,8 @@ clearitem(Item *item)
 
 	if (dir = item->dat) {
 		items = dir->items;
-		for (i = 0; i < dir->nitems; ++i) {
-			clearitem(items[i]);
-			free(items[i]);
-		}
+		for (i = 0; i < dir->nitems; ++i)
+			clearitem(&items[i]);
 		free(items);
 		clear(&item->dat);
 	}
@@ -222,21 +220,18 @@ invaliditem(char *raw)
 	return (tabs == 3) ? NULL : raw;
 }
 
-static Item *
-molditem(char **raw)
+static void
+molditem(Item *item, char **raw)
 {
-	Item *item;
 	char *next;
 
 	if (!*raw)
-		return NULL;
-
-	item = xcalloc(sizeof(Item));
+		return;
 
 	if ((next = invaliditem(*raw))) {
 		item->username = *raw;
 		*raw = next;
-		return item;
+		return;
 	}
 
 	item->type = *raw[0]++;
@@ -246,14 +241,12 @@ molditem(char **raw)
 	item->port = pickfield(raw, '\r');
 	if (!*raw[0])
 		++*raw;
-
-	return item;
 }
 
 static Dir *
 molddiritem(char *raw)
 {
-	Item **items = NULL;
+	Item *items = NULL;
 	char *s, *nl, *p;
 	Dir *dir;
 	size_t i, nitems;
@@ -270,10 +263,11 @@ molddiritem(char *raw)
 	}
 
 	dir = xmalloc(sizeof(Dir));
-	items = xreallocarray(items, nitems, sizeof(Item*));
+	items = xreallocarray(items, nitems, sizeof(Item));
+	memset(items, 0, nitems * sizeof(Item));
 
 	for (i = 0; i < nitems; ++i)
-		items[i] = molditem(&raw);
+		molditem(&items[i], &raw);
 
 	dir->items = items;
 	dir->nitems = nitems;

@@ -203,7 +203,7 @@ displayuri(Item *item)
 void
 uidisplay(Item *entry)
 {
-	Item **items;
+	Item *items;
 	Dir *dir;
 	size_t i, curln, lastln, nitems, printoff;
 
@@ -232,7 +232,7 @@ uidisplay(Item *entry)
 			putp(tparm(save_cursor));
 			putp(tparm(enter_standout_mode));
 		}
-		printitem(items[i]);
+		printitem(&items[i]);
 		putp(tparm(column_address, 0));
 		if (i == curln)
 			putp(tparm(exit_standout_mode));
@@ -258,7 +258,7 @@ movecurline(Item *item, int l)
 	if (curline < 0 || curline >= nitems)
 		return;
 
-	printitem(dir->items[dir->curline]);
+	printitem(&dir->items[dir->curline]);
 	dir->curline = curline;
 
 	if (l > 0) {
@@ -268,7 +268,7 @@ movecurline(Item *item, int l)
 
 			putp(tparm(cursor_address, plines, 0));
 			putp(tparm(scroll_forward));
-			printitem(dir->items[offline]);
+			printitem(&dir->items[offline]);
 
 			putp(tparm(restore_cursor));
 			dir->printoff += l;
@@ -280,7 +280,7 @@ movecurline(Item *item, int l)
 
 			putp(tparm(cursor_address, 0, 0));
 			putp(tparm(scroll_reverse));
-			printitem(dir->items[offline]);
+			printitem(&dir->items[offline]);
 			putchar('\n');
 
 			putp(tparm(restore_cursor));
@@ -290,7 +290,7 @@ movecurline(Item *item, int l)
 	
 	putp(tparm(cursor_address, curline - dir->printoff, 0));
 	putp(tparm(enter_standout_mode));
-	printitem(dir->items[curline]);
+	printitem(&dir->items[curline]);
 	putp(tparm(exit_standout_mode));
 	displaystatus(item);
 	fflush(stdout);
@@ -349,7 +349,7 @@ nearentry(Item *entry, int direction)
 	item = dir->curline + direction;
 
 	for (; item >= 0 && item < lastitem; item += direction) {
-		if (dir->items[item]->type != 'i')
+		if (dir->items[item].type != 'i')
 			return item;
 	}
 
@@ -410,7 +410,7 @@ uiselectitem(Item *entry)
 		case '\n':
 		pgnext:
 			if (dir)
-				return dir->items[dir->curline];
+				return &dir->items[dir->curline];
 			continue;
 		case _key_lndown:
 		lndown:
@@ -452,7 +452,7 @@ uiselectitem(Item *entry)
 			return entry;
 		case _key_uri:
 			if (dir)
-				displayuri(dir->items[dir->curline]);
+				displayuri(&dir->items[dir->curline]);
 			continue;
 		case _key_help: /* FALLTHROUGH */
 			return help(entry);

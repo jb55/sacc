@@ -16,7 +16,7 @@ struct item {
 };
 
 struct dir {
-	Item **items;
+	Item *items;
 	size_t nitems;
 	size_t printoff;
 	size_t curline;
