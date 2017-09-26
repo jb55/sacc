@@ -27,6 +27,7 @@ static char *mainurl;
 static Item *mainentry;
 static int devnullfd;
 static int parent = 1;
+static int interactive;
 
 void
 die(const char *fmt, ...)
@@ -164,6 +165,25 @@ typedisplay(char t)
 		return "Snd |";
 	default:
 		return "!   |";
+	}
+}
+
+static void
+printdir(Item *item)
+{
+	Dir *dir;
+	Item *items;
+	size_t i, nitems;
+
+	if (!item || !(dir = item->dat))
+		return;
+
+	items = dir->items;
+	nitems = dir->nitems;
+
+	for (i = 0; i < nitems; ++i) {
+		printf("%s%s\n",
+		       typedisplay(items[i].type), items[i].username);
 	}
 }
 
@@ -626,6 +646,26 @@ searchitem(Item *entry, Item *item)
 }
 
 static void
+printout(Item *hole)
+{
+	if (!hole)
+		return;
+
+	switch (hole->type) {
+	case '0':
+		if (dig(hole, hole))
+			puts(hole->raw);
+		return;
+	case '1':
+	case '+':
+		if (dig(hole, hole))
+			printdir(hole);
+	default:
+		return;
+	}
+}
+
+static void
 delve(Item *hole)
 {
 	Item *entry = NULL;
@@ -732,7 +772,8 @@ cleanup(void)
 		rmdir(tmpdir);
 	free(mainentry);
 	free(mainurl);
-	uicleanup();
+	if (interactive)
+		uicleanup();
 }
 
 static void
@@ -752,7 +793,8 @@ setup(void)
 		die("open: /dev/null: %s", strerror(errno));
 	if (mkdir(tmpdir, S_IRWXU) < 0 && errno != EEXIST)
 		die("mkdir: %s: %s", tmpdir, strerror(errno));
-	uisetup();
+	if(interactive = isatty(1))
+		uisetup();
 }
 
 int
@@ -766,7 +808,10 @@ main(int argc, char *argv[])
 	mainurl = xstrdup(argv[1]);
 
 	mainentry = moldentry(mainurl);
-	delve(mainentry);
+	if (interactive)
+		delve(mainentry);
+	else
+		printout(mainentry);
 
 	exit(0);
 }
