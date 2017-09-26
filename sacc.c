@@ -480,6 +480,8 @@ plumb(char *url)
 		if (execlp(plumber, plumber, url, NULL) < 0)
 			uistatus("execlp: plumb(%s): %s", url, strerror(errno));
 	}
+
+	uistatus("Plumbed \"%s\"", url);
 }
 
 static void
