@@ -76,13 +76,15 @@ static void
 printstatus(Item *item, char c)
 {
 	Dir *dir = item->dat;
+	char *fmt;
 	size_t nitems = dir ? dir->nitems : 0;
 	unsigned long long printoff = dir ? dir->printoff : 0;
 
-	printf("%3lld%%%*c %s:%s%s [%c]: ",
-	       (printoff + lines >= nitems) ? 100 :
+	fmt = (strcmp(item->port, "70") && strcmp(item->port, "gopher")) ?
+	      "%3lld%%%*c %s:%7$s/%c%s [%c]" : "%3lld%%%*c %s/%c%s [%c]";
+	printf(fmt, (printoff + lines-1 >= nitems) ? 100 :
 	       (printoff + lines) * 100 / nitems, ndigits(nitems)+2, '|',
-	       item->host, item->port, item->selector, c);
+	       item->host, item->type, item->selector, c, item->port);
 }
 
 char *
