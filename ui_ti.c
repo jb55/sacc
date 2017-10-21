@@ -67,6 +67,8 @@ uiprompt(char *fmt, ...)
 
 	printf("%*s", columns-r, " ");
 
+	putp(tparm(cursor_address, lines-1, r));
+
 	tsacc.c_lflag |= (ECHO|ICANON);
 	tcsetattr(0, TCSANOW, &tsacc);
 	fflush(stdout);
