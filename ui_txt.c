@@ -163,12 +163,26 @@ printuri(Item *item, size_t i)
 	}
 }
 
+void
+searchinline(const char *searchstr, Item *entry)
+{
+	Dir *dir;
+	size_t i;
+
+	if (!(dir = entry->dat))
+		return;
+
+	for (i = 0; i < dir->nitems; ++i)
+		if (strstr(dir->items[i].username, searchstr))
+			printuri(&(dir->items[i]), i + 1);
+}
+
 Item *
 uiselectitem(Item *entry)
 {
 	Dir *dir;
 	static char c;
-	char buf[BUFSIZ], nl;
+	char buf[BUFSIZ], nl, *searchstr;
 	int item, nitems, lines;
 
 	if (!entry || !(dir = entry->dat))
@@ -237,6 +251,13 @@ uiselectitem(Item *entry)
 		case 'u':
 			if (item > 0 && item <= nitems)
 				printuri(&dir->items[item-1], item);
+			continue;
+		case '/':
+			if ((searchstr = uiprompt("Search for: ")) &&
+			    searchstr[0])
+				searchinline(searchstr, entry);
+			free(searchstr);
+			searchstr = NULL;
 			continue;
 		case 'h':
 		case '?':

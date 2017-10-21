@@ -86,7 +86,7 @@ uiprompt(char *fmt, ...)
 	} else if (input[r - 1] == '\n') {
 		input[--r] = '\0';
 	}
-	
+
 	return input;
 }
 
@@ -289,7 +289,7 @@ movecurline(Item *item, int l)
 			dir->printoff += l;
 		}
 	}
-	
+
 	putp(tparm(cursor_address, curline - dir->printoff, 0));
 	putp(tparm(enter_standout_mode));
 	printitem(&dir->items[curline]);
@@ -339,6 +339,32 @@ jumptoline(Item *entry, ssize_t line, int absolute)
 	return;
 }
 
+void
+searchinline(const char *searchstr, Item *entry, int pos)
+{
+	Dir *dir;
+	int i;
+
+	if (!searchstr || !(dir = entry->dat))
+		return;
+
+	if (pos > 0) {
+		for (i = dir->curline + 1; i < dir->nitems; ++i) {
+			if (strstr(dir->items[i].username, searchstr)) {
+				jumptoline(entry, i, 1);
+				break;
+			}
+		}
+	} else {
+		for (i = dir->curline - 1; i > -1; --i) {
+			if (strstr(dir->items[i].username, searchstr)) {
+				jumptoline(entry, i, 1);
+				break;
+			}
+		}
+	}
+}
+
 static ssize_t
 nearentry(Item *entry, int direction)
 {
@@ -362,6 +388,7 @@ Item *
 uiselectitem(Item *entry)
 {
 	Dir *dir;
+	char *searchstr = NULL;
 	int plines = lines-2;
 
 	if (!entry || !(dir = entry->dat))
@@ -443,6 +470,21 @@ uiselectitem(Item *entry)
 		case _key_home:
 		home:
 			jumptoline(entry, 0, 0);
+			continue;
+		case _key_search:
+		search:
+			free(searchstr);
+			if ((searchstr = uiprompt("Search for: ")) &&
+			    searchstr[0])
+				goto searchnext;
+			clear(&searchstr);
+			continue;
+		case _key_searchnext:
+		searchnext:
+			searchinline(searchstr, entry, +1);
+			continue;
+		case _key_searchprev:
+			searchinline(searchstr, entry, -1);
 			continue;
 		case _key_quit:
 		quit:

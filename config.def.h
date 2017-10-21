@@ -15,6 +15,9 @@
 #define _key_fetch	'L' /* refetch current item */
 #define _key_help	'?' /* display help */
 #define _key_quit	'q' /* exit sacc */
+#define _key_search	'/' /* search */
+#define _key_searchnext	'n' /* search same string forward */
+#define _key_searchprev	'N' /* search same string backward */
 
 /* default plumber */
 static char *plumber = "xdg-open";
