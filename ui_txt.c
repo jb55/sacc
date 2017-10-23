@@ -46,6 +46,7 @@ help(void)
 	     "p: show previous page.\n"
 	     "t: go to the top of the page\n"
 	     "b: go to the bottom of the page\n"
+	     "/foo: search for string \"foo\"\n"
 	     "!: refetch failed item.\n"
 	     "^D, q: quit.\n"
 	     "h, ?: this help.");
