@@ -148,7 +148,9 @@ printuri(Item *item, size_t i)
 
 	switch (item->type) {
 	case 0:
+		break;
 	case 'i':
+		printf("%zu: %s\n", i, item->username);
 		break;
 	case 'h':
 		printf("%zu: %s: %s\n", i, item->username, item->selector);
