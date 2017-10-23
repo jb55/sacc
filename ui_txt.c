@@ -171,7 +171,7 @@ searchinline(const char *searchstr, Item *entry)
 	Dir *dir;
 	size_t i;
 
-	if (!(dir = entry->dat))
+	if (!searchstr || !*searchstr || !(dir = entry->dat))
 		return;
 
 	for (i = 0; i < dir->nitems; ++i)
@@ -184,7 +184,7 @@ uiselectitem(Item *entry)
 {
 	Dir *dir;
 	static char c;
-	char buf[BUFSIZ], nl, *searchstr;
+	char buf[BUFSIZ], *sstr, nl;
 	int item, nitems, lines;
 
 	if (!entry || !(dir = entry->dat))
@@ -209,6 +209,12 @@ uiselectitem(Item *entry)
 				item = -1;
 		} else if (!strcmp(buf+1, "\n")) {
 			item = -1;
+			c = *buf;
+		} else if (*buf == '/') {
+			for (sstr = buf+1; *sstr && *sstr != '\n'; ++sstr)
+			     ;
+			*sstr = '\0';
+			sstr = buf+1;
 			c = *buf;
 		} else if (isdigit(*(buf+1))) {
 			nl = '\0';
@@ -255,11 +261,8 @@ uiselectitem(Item *entry)
 				printuri(&dir->items[item-1], item);
 			continue;
 		case '/':
-			if ((searchstr = uiprompt("Search for: ")) &&
-			    searchstr[0])
-				searchinline(searchstr, entry);
-			free(searchstr);
-			searchstr = NULL;
+			if (*sstr)
+				searchinline(sstr, entry);
 			continue;
 		case 'h':
 		case '?':
