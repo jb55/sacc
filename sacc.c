@@ -654,7 +654,7 @@ printout(Item *hole)
 	switch (hole->type) {
 	case '0':
 		if (dig(hole, hole))
-			puts(hole->raw);
+			fputs(hole->raw, stdout);
 		return;
 	case '1':
 	case '+':
