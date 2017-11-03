@@ -26,12 +26,14 @@ termlines(void)
 }
 
 void
-uisetup(void) {
+uisetup(void)
+{
 	lines = termlines();
 }
 
 void
-uicleanup(void) {
+uicleanup(void)
+{
 	return;
 }
 
