@@ -162,7 +162,7 @@ displaystatus(Item *item)
 	putp(tparm(cursor_address, lines-1, 0));
 	putp(tparm(enter_standout_mode));
 	fmt = (strcmp(item->port, "70") && strcmp(item->port, "gopher")) ?
-	      "%3lld%%| %s:%5$s/%c%s" : "%3lld%%| %s/%c%s";
+	      "%1$3lld%%| %2$s:%5$s/%3$c%4$s" : "%3lld%%| %s/%c%s";
 	n = printf(fmt,
 	           (printoff + lines-1 >= nitems) ? 100 :
 	           (printoff + lines-1) * 100 / nitems,
@@ -192,8 +192,9 @@ displayuri(Item *item)
 		n = printf("%s: %s", item->username, item->selector);
 		break;
 	default:
-		fmt = strcmp(item->port, "70") ? "%s: gopher://%s:%5$s/%c%s" :
-		                                 "%s: gopher://%s/%c%s";
+		fmt = strcmp(item->port, "70") ?
+		      "%1$s: gopher://%2$s:%5$s/%3$c%4$s" :
+		      "%s: gopher://%s/%c%s";
 		n = printf(fmt, item->username,
 		           item->host, item->type, item->selector, item->port);
 		break;

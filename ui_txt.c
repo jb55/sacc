@@ -84,7 +84,8 @@ printstatus(Item *item, char c)
 	unsigned long long printoff = dir ? dir->printoff : 0;
 
 	fmt = (strcmp(item->port, "70") && strcmp(item->port, "gopher")) ?
-	      "%3lld%%%*c %s:%8$s/%c%s [%c]: " : "%3lld%%%*c %s/%c%s [%c]: ";
+	      "%1$3lld%%%*2$3$c %4$s:%8$s/%5$c%6$s [%7$c]: " :
+              "%3lld%%%*c %s/%c%s [%c]: ";
 	printf(fmt, (printoff + lines-1 >= nitems) ? 100 :
 	       (printoff + lines) * 100 / nitems, ndigits(nitems)+2, '|',
 	       item->host, item->type, item->selector, c, item->port);
@@ -160,7 +161,7 @@ printuri(Item *item, size_t i)
 		break;
 	default:
 		fmt = strcmp(item->port, "70") ?
-		      "%zu: %s: gopher://%s:%6$s/%c%s\n" :
+		      "%1$zu: %2$s: gopher://%3$s:%6$s/%4$c%5$s\n" :
 		      "%zu: %s: gopher://%s/%c%s\n";
 		printf(fmt, i, item->username,
 		       item->host, item->type, item->selector, item->port);
