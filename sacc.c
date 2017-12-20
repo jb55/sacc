@@ -713,7 +713,7 @@ static Item *
 moldentry(char *url)
 {
 	Item *entry;
-	char *p, *host = url, *port = "gopher", *gopherpath = "1";
+	char *p, *host = url, *port = "70", *gopherpath = "1";
 	int parsed, ipv6;
 
 	if (p = strstr(url, "://")) {
