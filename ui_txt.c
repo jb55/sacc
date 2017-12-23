@@ -10,10 +10,10 @@
 
 #include "common.h"
 
-int lines;
+int lines, columns;
 
-static int
-termlines(void)
+static void
+viewsize(int *ln, int *col)
 {
 	struct winsize ws;
 
@@ -22,13 +22,16 @@ termlines(void)
 		    strerror(errno));
 	}
 
-	return ws.ws_row-1; /* one off for status bar */
+	if (ln)
+		*ln = ws.ws_row-1; /* one off for status bar */
+	if (col)
+		*col = ws.ws_col;
 }
 
 void
 uisetup(void)
 {
-	lines = termlines();
+	viewsize(&lines, &columns);
 }
 
 void
@@ -121,7 +124,7 @@ uidisplay(Item *entry)
 {
 	Item *items;
 	Dir *dir;
-	size_t i, lines, nitems;
+	size_t i, nlines, nitems;
 	int nd;
 
 	if (!entry ||
@@ -131,10 +134,10 @@ uidisplay(Item *entry)
 
 	items = dir->items;
 	nitems = dir->nitems;
-	lines = dir->printoff + termlines();
+	nlines = dir->printoff + lines;
 	nd = ndigits(nitems);
 
-	for (i = dir->printoff; i < nitems && i < lines; ++i) {
+	for (i = dir->printoff; i < nitems && i < nlines; ++i) {
 		printf("%*zu %s %s\n",
 		       nd, i+1, typedisplay(items[i].type), items[i].username);
 	}
@@ -189,7 +192,7 @@ uiselectitem(Item *entry)
 	Dir *dir;
 	static char c;
 	char buf[BUFSIZ], *sstr, nl;
-	int item, nitems, lines;
+	int item, nitems;
 
 	if (!entry || !(dir = entry->dat))
 		return NULL;
@@ -234,20 +237,17 @@ uiselectitem(Item *entry)
 		case 'q':
 			return NULL;
 		case 'n':
-			lines = termlines();
 			if (lines < nitems - dir->printoff &&
 			    lines < (size_t)-1 - dir->printoff)
 				dir->printoff += lines;
 			return entry;
 		case 'p':
-			lines = termlines();
 			if (lines <= dir->printoff)
 				dir->printoff -= lines;
 			else
 				dir->printoff = 0;
 			return entry;
 		case 'b':
-			lines = termlines();
 			if (nitems > lines)
 				dir->printoff = nitems - lines;
 			else
