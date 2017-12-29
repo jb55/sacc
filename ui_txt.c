@@ -10,6 +10,7 @@
 
 #include "common.h"
 
+static char bufout[256];
 int lines, columns;
 
 static void
@@ -67,12 +68,20 @@ void
 uistatus(char *fmt, ...)
 {
 	va_list arg;
+	int n;
 
 	va_start(arg, fmt);
-	vprintf(fmt, arg);
+	n = vsnprintf(bufout, sizeof(bufout), fmt, arg);
 	va_end(arg);
 
-	printf(" [Press Enter to continue ☃]");
+	if (n < sizeof(bufout)-1) {
+		n += snprintf(bufout + n, sizeof(bufout) - n,
+		              " [Press Enter to continue ☃]");
+	}
+	if (n >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
+
+	printf("%.*s", columns, bufout);
 	fflush(stdout);
 
 	getchar();
@@ -89,9 +98,13 @@ printstatus(Item *item, char c)
 	fmt = (strcmp(item->port, "70") && strcmp(item->port, "gopher")) ?
 	      "%1$3lld%%%*2$3$c %4$s:%8$s/%5$c%6$s [%7$c]: " :
               "%3lld%%%*c %s/%c%s [%c]: ";
-	printf(fmt, (printoff + lines-1 >= nitems) ? 100 :
-	       (printoff + lines) * 100 / nitems, ndigits(nitems)+2, '|',
-	       item->host, item->type, item->selector, c, item->port);
+	if (snprintf(bufout, sizeof(bufout), fmt,
+	             (printoff + lines-1 >= nitems) ? 100 :
+	             (printoff + lines) * 100 / nitems, ndigits(nitems)+2, '|',
+	             item->host, item->type, item->selector, c, item->port)
+	    >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
+	printf("%.*s", columns, bufout);
 }
 
 char *
@@ -103,8 +116,11 @@ uiprompt(char *fmt, ...)
 	ssize_t r;
 
 	va_start(ap, fmt);
-	vprintf(fmt, ap);
+	if (vsnprintf(bufout, sizeof(bufout), fmt, ap) >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
 	va_end(ap);
+
+	printf("%.*s", columns, bufout);
 
 	fflush(stdout);
 
@@ -138,8 +154,12 @@ uidisplay(Item *entry)
 	nd = ndigits(nitems);
 
 	for (i = dir->printoff; i < nitems && i < nlines; ++i) {
-		printf("%*zu %s %s\n",
-		       nd, i+1, typedisplay(items[i].type), items[i].username);
+		if (snprintf(bufout, sizeof(bufout), "%*zu %s %s",
+		             nd, i+1, typedisplay(items[i].type),
+		             items[i].username)
+		    >= sizeof(bufout))
+			bufout[sizeof(bufout)-1] = '\0';
+		printf("%.*s\n", columns, bufout);
 	}
 
 	fflush(stdout);
@@ -149,27 +169,35 @@ void
 printuri(Item *item, size_t i)
 {
 	char *fmt;
+	int n;
 
 	if (!item)
 		return;
 
 	switch (item->type) {
 	case 0:
-		break;
+		return;
 	case 'i':
-		printf("%zu: %s\n", i, item->username);
+		n = snprintf(bufout, sizeof(bufout), "%zu: %s",
+		             i, item->username);
 		break;
 	case 'h':
-		printf("%zu: %s: %s\n", i, item->username, item->selector);
+		n = snprintf(bufout, sizeof(bufout), "%zu: %s: %s",
+		         i, item->username, item->selector);
 		break;
 	default:
 		fmt = strcmp(item->port, "70") ?
-		      "%1$zu: %2$s: gopher://%3$s:%6$s/%4$c%5$s\n" :
-		      "%zu: %s: gopher://%s/%c%s\n";
-		printf(fmt, i, item->username,
-		       item->host, item->type, item->selector, item->port);
+		      "%1$zu: %2$s: gopher://%3$s:%6$s/%4$c%5$s" :
+		      "%zu: %s: gopher://%s/%c%s";
+		n = snprintf(bufout, sizeof(bufout), fmt, i, item->username,
+		             item->host, item->type, item->selector, item->port);
 		break;
 	}
+	
+	if (n >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
+
+	printf("%.*s\n", columns, bufout);
 }
 
 void

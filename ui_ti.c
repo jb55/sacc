@@ -13,6 +13,7 @@
 #define C(c) #c
 #define S(c) C(c)
 
+static char bufout[256];
 static struct termios tsave;
 static struct termios tsacc;
 #if defined(__NetBSD__)
@@ -50,8 +51,8 @@ uiprompt(char *fmt, ...)
 {
 	va_list ap;
 	char *input = NULL;
-	size_t n = 0;
-	ssize_t r = 0;
+	size_t n;
+	ssize_t r;
 
 	putp(tparm(save_cursor));
 
@@ -60,19 +61,23 @@ uiprompt(char *fmt, ...)
 	putp(tparm(enter_standout_mode));
 
 	va_start(ap, fmt);
-	r += vprintf(fmt, ap);
+	if (vsnprintf(bufout, sizeof(bufout), fmt, ap) >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
 	va_end(ap);
+	printf("%.*s", columns, bufout);
 
 	putp(tparm(exit_standout_mode));
 
-	printf("%*s", columns-r, " ");
+	if ((n = strlen(bufout)) < columns)
+		printf("%*s", columns - n, " ");
 
-	putp(tparm(cursor_address, lines-1, r));
+	putp(tparm(cursor_address, lines-1, n));
 
 	tsacc.c_lflag |= (ECHO|ICANON);
 	tcsetattr(0, TCSANOW, &tsacc);
 	fflush(stdout);
 
+	n = 0;
 	r = getline(&input, &n, stdin);
 
 	tsacc.c_lflag &= ~(ECHO|ICANON);
@@ -93,7 +98,10 @@ uiprompt(char *fmt, ...)
 static void
 printitem(Item *item)
 {
-	printf("%s %s\r", typedisplay(item->type), item->username);
+	if (snprintf(bufout, sizeof(bufout), "%s %s", typedisplay(item->type),
+	    item->username) >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
+	printf("%.*s\r", columns, bufout);
 }
 
 static Item *
@@ -127,7 +135,7 @@ void
 uistatus(char *fmt, ...)
 {
 	va_list ap;
-	int n = 0;
+	size_t n;
 
 	putp(tparm(save_cursor));
 
@@ -135,12 +143,20 @@ uistatus(char *fmt, ...)
 	putp(tparm(enter_standout_mode));
 
 	va_start(ap, fmt);
-	n += vprintf(fmt, ap);
+	n = vsnprintf(bufout + n, sizeof(bufout) - n, fmt, ap);
 	va_end(ap);
 
-	n += printf(" [Press a key to continue ☃]");
+	if (n < sizeof(bufout)-1) {
+		n += snprintf(bufout + n, sizeof(bufout) - n,
+		              " [Press a key to continue ☃]");
+	}
+	if (n >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
+
+	printf("%.*s", columns, bufout);
 	putp(tparm(exit_standout_mode));
-	printf("%*s", columns-n, " ");
+	if ((n = strlen(bufout)) < columns)
+		printf("%*s", columns - n, " ");
 
 	putp(tparm(restore_cursor));
 	fflush(stdout);
@@ -153,9 +169,8 @@ displaystatus(Item *item)
 {
 	Dir *dir = item->dat;
 	char *fmt;
-	size_t nitems = dir ? dir->nitems : 0;
+	size_t n, nitems = dir ? dir->nitems : 0;
 	unsigned long long printoff = dir ? dir->printoff : 0;
-	int n;
 
 	putp(tparm(save_cursor));
 
@@ -163,12 +178,16 @@ displaystatus(Item *item)
 	putp(tparm(enter_standout_mode));
 	fmt = (strcmp(item->port, "70") && strcmp(item->port, "gopher")) ?
 	      "%1$3lld%%| %2$s:%5$s/%3$c%4$s" : "%3lld%%| %s/%c%s";
-	n = printf(fmt,
-	           (printoff + lines-1 >= nitems) ? 100 :
-	           (printoff + lines-1) * 100 / nitems,
-	           item->host, item->type, item->selector, item->port);
+	if (snprintf(bufout, sizeof(bufout), fmt,
+	             (printoff + lines-1 >= nitems) ? 100 :
+	             (printoff + lines-1) * 100 / nitems,
+	             item->host, item->type, item->selector, item->port)
+	    >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
+	printf("%.*s", columns, bufout);
 	putp(tparm(exit_standout_mode));
-	printf("%*s", columns-n, " ");
+	if ((n = strlen(bufout)) < columns)
+		printf("%*s", columns - n, " ");
 
 	putp(tparm(restore_cursor));
 	fflush(stdout);
@@ -178,7 +197,7 @@ static void
 displayuri(Item *item)
 {
 	char *fmt;
-	int n;
+	size_t n;
 
 	if (item->type == 0 || item->type == 'i')
 		return;
@@ -189,18 +208,26 @@ displayuri(Item *item)
 	putp(tparm(enter_standout_mode));
 	switch (item->type) {
 	case 'h':
-		n = printf("%s: %s", item->username, item->selector);
+		n = snprintf(bufout, sizeof(bufout), "%s: %s",
+		             item->username, item->selector);
 		break;
 	default:
 		fmt = strcmp(item->port, "70") ?
 		      "%1$s: gopher://%2$s:%5$s/%3$c%4$s" :
 		      "%s: gopher://%s/%c%s";
-		n = printf(fmt, item->username,
-		           item->host, item->type, item->selector, item->port);
+		n = snprintf(bufout, sizeof(bufout), fmt,
+		             item->username, item->host, item->type,
+		             item->selector, item->port);
 		break;
 	}
+
+	if (n >= sizeof(bufout))
+		bufout[sizeof(bufout)-1] = '\0';
+
+	printf("%.*s", columns, bufout);
 	putp(tparm(exit_standout_mode));
-	printf("%*s", columns-n, " ");
+	if ((n = strlen(bufout)) < columns)
+		printf("%*s", columns - n, " ");
 
 	putp(tparm(restore_cursor));
 	fflush(stdout);
