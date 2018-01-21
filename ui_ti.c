@@ -143,7 +143,7 @@ uistatus(char *fmt, ...)
 	putp(tparm(enter_standout_mode));
 
 	va_start(ap, fmt);
-	n = vsnprintf(bufout + n, sizeof(bufout) - n, fmt, ap);
+	n = vsnprintf(bufout, sizeof(bufout), fmt, ap);
 	va_end(ap);
 
 	if (n < sizeof(bufout)-1) {

@@ -193,7 +193,7 @@ printuri(Item *item, size_t i)
 		             item->host, item->type, item->selector, item->port);
 		break;
 	}
-	
+
 	if (n >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
 
