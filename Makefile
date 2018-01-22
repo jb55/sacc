@@ -21,9 +21,9 @@ clean:
 	rm -f $(BIN) $(OBJ)
 
 install: $(BIN)
-	mkdir -p $(PREFIX)/bin/
-	cp -f $(BIN) $(PREFIX)/bin/
-	chmod 555 $(PREFIX)/bin/$(BIN)
+	mkdir -p $(DESTDIR)$(PREFIX)/bin/
+	cp -f $(BIN) $(DESTDIR)$(PREFIX)/bin/
+	chmod 555 $(DESTDIR)$(PREFIX)/bin/$(BIN)
 
 uninstall:
-	rm -f $(PREFIX)/bin/$(BIN)
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN)
