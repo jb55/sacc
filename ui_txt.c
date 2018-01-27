@@ -11,6 +11,8 @@
 #include "common.h"
 
 static char bufout[256];
+static Item *curentry;
+static char cmd;
 int lines, columns;
 
 static void
@@ -148,6 +150,8 @@ uidisplay(Item *entry)
 	    !(dir = entry->dat))
 		return;
 
+	curentry = entry;
+
 	items = dir->items;
 	nitems = dir->nitems;
 	nlines = dir->printoff + lines;
@@ -218,7 +222,6 @@ Item *
 uiselectitem(Item *entry)
 {
 	Dir *dir;
-	static char c;
 	char buf[BUFSIZ], *sstr, nl;
 	int item, nitems;
 
@@ -228,9 +231,9 @@ uiselectitem(Item *entry)
 	nitems = dir ? dir->nitems : 0;
 
 	for (;;) {
-		if (!c)
-			c = 'h';
-		printstatus(entry, c);
+		if (!cmd)
+			cmd = 'h';
+		printstatus(entry, cmd);
 		fflush(stdout);
 
 		if (!fgets(buf, sizeof(buf), stdin)) {
@@ -238,28 +241,28 @@ uiselectitem(Item *entry)
 			return NULL;
 		}
 		if (isdigit(*buf)) {
-			c = '\0';
+			cmd = '\0';
 			nl = '\0';
 			if (sscanf(buf, "%d%c", &item, &nl) != 2 || nl != '\n')
 				item = -1;
 		} else if (!strcmp(buf+1, "\n")) {
 			item = -1;
-			c = *buf;
+			cmd = *buf;
 		} else if (*buf == '/') {
 			for (sstr = buf+1; *sstr && *sstr != '\n'; ++sstr)
 			     ;
 			*sstr = '\0';
 			sstr = buf+1;
-			c = *buf;
+			cmd = *buf;
 		} else if (isdigit(*(buf+1))) {
 			nl = '\0';
 			if (sscanf(buf+1, "%d%c", &item, &nl) != 2 || nl != '\n')
 				item = -1;
 			else
-				c = *buf;
+				cmd = *buf;
 		}
 
-		switch (c) {
+		switch (cmd) {
 		case '\0':
 			break;
 		case 'q':
@@ -301,7 +304,7 @@ uiselectitem(Item *entry)
 			help();
 			continue;
 		default:
-			c = 'h';
+			cmd = 'h';
 			continue;
 		}
 
@@ -313,4 +316,14 @@ uiselectitem(Item *entry)
 		return &dir->items[item-1];
 
 	return entry->entry;
+}
+
+void
+uisigwinch(int signal)
+{
+	uisetup();
+	putchar('\n');
+	uidisplay(curentry);
+	printstatus(curentry, cmd);
+	fflush(stdout);
 }

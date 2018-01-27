@@ -30,3 +30,4 @@ void uistatus(char *fmt, ...);
 void uicleanup(void);
 char *uiprompt(char *fmt, ...);
 void uisetup(void);
+void uisigwinch(int signal);

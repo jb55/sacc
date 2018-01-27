@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -779,6 +780,7 @@ cleanup(void)
 static void
 setup(void)
 {
+	struct sigaction sa;
 	int fd;
 
 	setenv("PAGER", "more", 0);
@@ -793,8 +795,13 @@ setup(void)
 		die("open: /dev/null: %s", strerror(errno));
 	if (mkdir(tmpdir, S_IRWXU) < 0 && errno != EEXIST)
 		die("mkdir: %s: %s", tmpdir, strerror(errno));
-	if(interactive = isatty(1))
+	if(interactive = isatty(1)) {
 		uisetup();
+		sigemptyset(&sa.sa_mask);
+		sa.sa_handler = uisigwinch;
+		sa.sa_flags = SA_RESTART;
+		sigaction(SIGWINCH, &sa, NULL);
+	}
 }
 
 int

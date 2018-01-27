@@ -16,6 +16,7 @@
 static char bufout[256];
 static struct termios tsave;
 static struct termios tsacc;
+static Item *curentry;
 #if defined(__NetBSD__)
 #undef tparm
 #define tparm tiparm
@@ -243,6 +244,8 @@ uidisplay(Item *entry)
 	if (!entry ||
 	    !(entry->type == '1' || entry->type == '+' || entry->type == '7'))
 		return;
+
+	curentry = entry;
 
 	putp(tparm(clear_screen));
 	displaystatus(entry);
@@ -535,4 +538,13 @@ uiselectitem(Item *entry)
 			continue;
 		}
 	}
+}
+
+void
+uisigwinch(int signal)
+{
+	setupterm(NULL, 1, NULL);
+	putp(tparm(change_scroll_region, 0, lines-2));
+
+	uidisplay(curentry);
 }
