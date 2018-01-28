@@ -78,7 +78,7 @@ uistatus(char *fmt, ...)
 
 	if (n < sizeof(bufout)-1) {
 		n += snprintf(bufout + n, sizeof(bufout) - n,
-		              " [Press Enter to continue ☃]");
+		              " [Press Enter to continue \xe2\x98\x83]");
 	}
 	if (n >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';

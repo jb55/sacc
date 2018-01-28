@@ -362,7 +362,8 @@ connectto(const char *host, const char *port)
 	int sock, r;
 
 	if (r = getaddrinfo(host, port, &hints, &addrs)) {
-		uistatus("Can't resolve hostname “%s”: %s", host, gai_strerror(r));
+		uistatus("Can't resolve hostname \"%s\": %s",
+		         host, gai_strerror(r));
 		return -1;
 	}
 
@@ -381,7 +382,8 @@ connectto(const char *host, const char *port)
 		return -1;
 	}
 	if (r < 0) {
-		uistatus("Can't connect to: %s:%s: %s", host, port, strerror(errno));
+		uistatus("Can't connect to: %s:%s: %s",
+		         host, port, strerror(errno));
 		return -1;
 	}
 

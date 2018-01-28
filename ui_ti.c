@@ -149,7 +149,7 @@ uistatus(char *fmt, ...)
 
 	if (n < sizeof(bufout)-1) {
 		n += snprintf(bufout + n, sizeof(bufout) - n,
-		              " [Press a key to continue ☃]");
+		              " [Press a key to continue \xe2\x98\x83]");
 	}
 	if (n >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
