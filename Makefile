@@ -13,7 +13,7 @@ config.h:
 	cp config.def.h config.h
 
 $(BIN): $(OBJ)
-	$(CC) $(OBJ) $(SACCLDFLAGS) -o $@
+	$(CC) $(OBJ) $(LDFLAGS) $(LIBS) -o $@
 
 $(OBJ): config.h config.mk common.h
 
