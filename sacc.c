@@ -8,12 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__) || \
-    defined(__FreeBSD__)
-#include <sys/ioctl.h>
-#else
-#include <stropts.h>
-#endif
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
