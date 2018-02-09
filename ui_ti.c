@@ -65,11 +65,10 @@ uiprompt(char *fmt, ...)
 	if (vsnprintf(bufout, sizeof(bufout), fmt, ap) >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
 	va_end(ap);
-	printf("%.*s", columns, bufout);
+	n = mbsprint(bufout, columns);
 
 	putp(tparm(exit_standout_mode));
-
-	if ((n = strlen(bufout)) < columns)
+	if (n < columns)
 		printf("%*s", columns - n, " ");
 
 	putp(tparm(cursor_address, lines-1, n));
@@ -102,7 +101,8 @@ printitem(Item *item)
 	if (snprintf(bufout, sizeof(bufout), "%s %s", typedisplay(item->type),
 	    item->username) >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
-	printf("%.*s\r", columns, bufout);
+	mbsprint(bufout, columns);
+	putchar('\r');
 }
 
 static Item *
@@ -154,9 +154,9 @@ uistatus(char *fmt, ...)
 	if (n >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
 
-	printf("%.*s", columns, bufout);
+	n = mbsprint(bufout, columns);
 	putp(tparm(exit_standout_mode));
-	if ((n = strlen(bufout)) < columns)
+	if (n < columns)
 		printf("%*s", columns - n, " ");
 
 	putp(tparm(restore_cursor));
@@ -185,9 +185,9 @@ displaystatus(Item *item)
 	             item->host, item->type, item->selector, item->port)
 	    >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
-	printf("%.*s", columns, bufout);
+	n = mbsprint(bufout, columns);
 	putp(tparm(exit_standout_mode));
-	if ((n = strlen(bufout)) < columns)
+	if (n < columns)
 		printf("%*s", columns - n, " ");
 
 	putp(tparm(restore_cursor));
@@ -225,9 +225,9 @@ displayuri(Item *item)
 	if (n >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
 
-	printf("%.*s", columns, bufout);
+	n = mbsprint(bufout, columns);
 	putp(tparm(exit_standout_mode));
-	if ((n = strlen(bufout)) < columns)
+	if (n < columns)
 		printf("%*s", columns - n, " ");
 
 	putp(tparm(restore_cursor));

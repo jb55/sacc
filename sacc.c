@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include <errno.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
@@ -9,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <wchar.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -35,6 +37,34 @@ die(const char *fmt, ...)
 	fputc('\n', stderr);
 
 	exit(1);
+}
+
+/* print `len' columns of characters. */
+size_t
+mbsprint(const char *s, size_t len)
+{
+	wchar_t wc;
+	size_t col = 0, i, slen;
+	int rl, w;
+
+	if (!len)
+		return col;
+
+	slen = strlen(s);
+	for (i = 0; i < slen; i += rl) {
+		if ((rl = mbtowc(&wc, s + i, slen - i < 4 ? slen - i : 4)) <= 0)
+			break;
+		if ((w = wcwidth(wc)) == -1)
+			continue;
+		if (col + w > len || (col + w == len && s[i + rl])) {
+			fputs("\xe2\x80\xa6", stdout);
+			col++;
+			break;
+		}
+		fwrite(s + i, 1, rl, stdout);
+		col += w;
+	}
+	return col;
 }
 
 static void *
@@ -779,6 +809,7 @@ setup(void)
 	struct sigaction sa;
 	int fd;
 
+	setlocale(LC_CTYPE, "");
 	setenv("PAGER", "more", 0);
 	atexit(cleanup);
 	/* reopen stdin in case we're reading from a pipe */

@@ -83,7 +83,7 @@ uistatus(char *fmt, ...)
 	if (n >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
 
-	printf("%.*s", columns, bufout);
+	mbsprint(bufout, columns);
 	fflush(stdout);
 
 	getchar();
@@ -106,7 +106,7 @@ printstatus(Item *item, char c)
 	             item->host, item->type, item->selector, c, item->port)
 	    >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
-	printf("%.*s", columns, bufout);
+	mbsprint(bufout, columns);
 }
 
 char *
@@ -122,8 +122,7 @@ uiprompt(char *fmt, ...)
 		bufout[sizeof(bufout)-1] = '\0';
 	va_end(ap);
 
-	printf("%.*s", columns, bufout);
-
+	mbsprint(bufout, columns);
 	fflush(stdout);
 
 	if ((r = getline(&input, &n, stdin)) < 0) {
@@ -163,7 +162,8 @@ uidisplay(Item *entry)
 		             items[i].username)
 		    >= sizeof(bufout))
 			bufout[sizeof(bufout)-1] = '\0';
-		printf("%.*s\n", columns, bufout);
+		mbsprint(bufout, columns);
+		putchar('\n');
 	}
 
 	fflush(stdout);
@@ -201,7 +201,8 @@ printuri(Item *item, size_t i)
 	if (n >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
 
-	printf("%.*s\n", columns, bufout);
+	mbsprint(bufout, columns);
+	putchar('\n');
 }
 
 void
