@@ -772,14 +772,16 @@ moldentry(char *url)
 			continue;
 		case '/':
 			*p = '\0';
-			gopherpath = p+1;
 			parsed = 1;
 			continue;
 		}
 	}
 
-	if (*host == '\0' || *port == '\0' || ipv6 || *gopherpath == '\0')
+	if (*host == '\0' || *port == '\0' || ipv6)
 		die("Can't parse url");
+
+	if (*p != '\0')
+		gopherpath = p;
 
 	entry = xcalloc(sizeof(Item));
 	entry->type = gopherpath[0];
