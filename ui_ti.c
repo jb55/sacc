@@ -543,8 +543,16 @@ uiselectitem(Item *entry)
 void
 uisigwinch(int signal)
 {
+	Dir *dir;
+
 	setupterm(NULL, 1, NULL);
 	putp(tparm(change_scroll_region, 0, lines-2));
+
+	if (!curentry || !(dir = curentry->dat))
+		return;
+
+	if (dir->curline - dir->printoff > lines-2)
+		dir->curline = dir->printoff + lines-2;
 
 	uidisplay(curentry);
 }
