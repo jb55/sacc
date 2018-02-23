@@ -590,6 +590,8 @@ cleanup:
 static int
 dig(Item *entry, Item *item)
 {
+	char *plumburi = NULL;
+
 	if (item->raw) /* already in cache */
 		return item->type;
 	if (!item->entry)
@@ -617,7 +619,24 @@ dig(Item *entry, Item *item)
 	case '9':
 		downloaditem(item);
 		return 0;
+	case 'T':
+		if (asprintf(&plumburi, "tn3270://%s@%s:%s", item->selector,
+					item->host, item->port) < 0) {
+			return 0;
+		}
+		plumb(plumburi);
+		free(plumburi);
+		return 0;
+	case '8':
+		if (asprintf(&plumburi, "telnet://%s@%s:%s", item->selector,
+					item->host, item->port) < 0) {
+			return 0;
+		}
+		plumb(plumburi);
+		free(plumburi);
+		return 0;
 	case 'g':
+		return 0;
 	case 'I':
 		plumbitem(item);
 		return 0;
@@ -675,6 +694,8 @@ searchitem(Item *entry, Item *item)
 static void
 printout(Item *hole)
 {
+	char *printuri = NULL;
+
 	if (!hole)
 		return;
 
@@ -716,9 +737,11 @@ delve(Item *hole)
 		case '4':
 		case '5':
 		case '6': /* TODO decode? */
+		case '8':
 		case '9':
 		case 'g':
 		case 'I':
+		case 'T':
 			dig(entry, hole);
 			break;
 		case 0:

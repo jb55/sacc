@@ -181,6 +181,10 @@ printuri(Item *item, size_t i)
 	switch (item->type) {
 	case 0:
 		return;
+	case '8':
+		n = snprintf(bufout, sizeof(bufout), "telnet://%s@%s:%s",
+				item->selector, item->host, item->port);
+		break;
 	case 'i':
 		n = snprintf(bufout, sizeof(bufout), "%zu: %s",
 		             i, item->username);
@@ -188,6 +192,10 @@ printuri(Item *item, size_t i)
 	case 'h':
 		n = snprintf(bufout, sizeof(bufout), "%zu: %s: %s",
 		         i, item->username, item->selector);
+		break;
+	case 'T':
+		n = snprintf(bufout, sizeof(bufout), "tn3270://%s@%s:%s",
+				item->selector, item->host, item->port);
 		break;
 	default:
 		fmt = strcmp(item->port, "70") ?
