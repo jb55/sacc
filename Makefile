@@ -5,6 +5,7 @@
 include config.mk
 
 BIN = sacc
+MAN = $(BIN).1
 OBJ = $(BIN:=.o) ui_$(UI).o
 
 all: $(BIN)
@@ -24,6 +25,8 @@ install: $(BIN)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin/
 	cp -f $(BIN) $(DESTDIR)$(PREFIX)/bin/
 	chmod 555 $(DESTDIR)$(PREFIX)/bin/$(BIN)
+	mkdir -p $(DESTDIR)$(MANDIR)
+	cp -f $(MAN) $(DESTDIR)$(MANDIR)
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN)
