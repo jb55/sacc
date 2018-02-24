@@ -30,3 +30,9 @@ install: $(BIN)
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN)
+
+# Stock FLAGS
+SACCCFLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700 -D_BSD_SOURCE $(CFLAGS)
+
+.c.o:
+	$(CC) $(SACCCFLAGS) -c $<
