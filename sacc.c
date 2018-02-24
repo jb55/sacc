@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <locale.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -38,6 +39,28 @@ die(const char *fmt, ...)
 
 	exit(1);
 }
+
+#ifndef asprintf
+int
+asprintf(char **s, const char *fmt, ...)
+{
+	va_list ap;
+	int n;
+
+	va_start(ap, fmt);
+	n = vsnprintf(NULL, 0, fmt, ap);
+	va_end(ap);
+
+	if (n == INT_MAX || !(*s = malloc(++n)))
+		return -1;
+
+	va_start(ap, fmt);
+	vsnprintf(*s, n, fmt, ap);
+	va_end(ap);
+
+	return n;
+}
+#endif /* asprintf */
 
 /* print `len' columns of characters. */
 size_t
@@ -558,9 +581,9 @@ plumbitem(Item *item)
 	if (!path[0]) {
 		clear(&path);
 		if (!tag) {
-			n = snprintf(NULL, 0, "%s/%s", tmpdir, file);
-			path = xmalloc(++n);
-			snprintf(path, n, "%s/%s", tmpdir, file);
+			if (asprintf(&path, "%s/%s", tmpdir, file) < 0)
+				die("Can't generate tmpdir path: ",
+				    strerror(errno));
 		}
 	}
 
