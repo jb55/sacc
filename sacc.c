@@ -650,7 +650,6 @@ dig(Item *entry, Item *item)
 		free(plumburi);
 		return 0;
 	case 'g':
-		return 0;
 	case 'I':
 		plumbitem(item);
 		return 0;
@@ -715,8 +714,6 @@ searchitem(Item *entry, Item *item)
 static void
 printout(Item *hole)
 {
-	char *printuri = NULL;
-
 	if (!hole)
 		return;
 
