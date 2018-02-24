@@ -619,19 +619,10 @@ dig(Item *entry, Item *item)
 	case '9':
 		downloaditem(item);
 		return 0;
-	case 'T':
-		if (asprintf(&plumburi, "tn3270://%s@%s:%s", item->selector,
-					item->host, item->port) < 0) {
-			return 0;
-		}
-		plumb(plumburi);
-		free(plumburi);
-		return 0;
 	case '8':
 		if (asprintf(&plumburi, "telnet://%s@%s:%s", item->selector,
-					item->host, item->port) < 0) {
+		             item->host, item->port) < 0)
 			return 0;
-		}
 		plumb(plumburi);
 		free(plumburi);
 		return 0;
@@ -639,6 +630,13 @@ dig(Item *entry, Item *item)
 		return 0;
 	case 'I':
 		plumbitem(item);
+		return 0;
+	case 'T':
+		if (asprintf(&plumburi, "tn3270://%s@%s:%s", item->selector,
+		             item->host, item->port) < 0)
+			return 0;
+		plumb(plumburi);
+		free(plumburi);
 		return 0;
 	default:
 		uistatus("Type %c (%s) not supported",

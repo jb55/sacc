@@ -210,7 +210,7 @@ displayuri(Item *item)
 	switch (item->type) {
 	case '8':
 		n = snprintf(bufout, sizeof(bufout), "telnet://%s@%s:%s",
-				item->selector, item->host, item->port);
+		             item->selector, item->host, item->port);
 		break;
 	case 'h':
 		n = snprintf(bufout, sizeof(bufout), "%s: %s",
@@ -218,7 +218,7 @@ displayuri(Item *item)
 		break;
 	case 'T':
 		n = snprintf(bufout, sizeof(bufout), "tn3270://%s@%s:%s",
-				item->selector, item->host, item->port);
+		             item->selector, item->host, item->port);
 		break;
 	default:
 		fmt = strcmp(item->port, "70") ?
