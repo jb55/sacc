@@ -863,13 +863,17 @@ setup(void)
 	close(fd);
 	if ((devnullfd = open("/dev/null", O_WRONLY)) < 0)
 		die("open: /dev/null: %s", strerror(errno));
+
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sa.sa_handler = exit;
+	sigaction(SIGINT, &sa, NULL);
+
 	if (mkdir(tmpdir, S_IRWXU) < 0 && errno != EEXIST)
 		die("mkdir: %s: %s", tmpdir, strerror(errno));
 	if(interactive = isatty(1)) {
 		uisetup();
-		sigemptyset(&sa.sa_mask);
 		sa.sa_handler = uisigwinch;
-		sa.sa_flags = SA_RESTART;
 		sigaction(SIGWINCH, &sa, NULL);
 	}
 }
