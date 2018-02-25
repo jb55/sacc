@@ -528,6 +528,7 @@ uiselectitem(Item *entry)
 		case _key_searchprev:
 			searchinline(searchstr, entry, -1);
 			continue;
+		case 0x04:
 		case _key_quit:
 		quit:
 			return NULL;
