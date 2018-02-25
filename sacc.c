@@ -548,7 +548,7 @@ plumb(char *url)
 		dup2(devnullfd, 1);
 		dup2(devnullfd, 2);
 		if (execlp(plumber, plumber, url, NULL) < 0)
-			uistatus("execlp: plumb(%s): %s", url, strerror(errno));
+			_exit(1);
 	}
 
 	uistatus("Plumbed \"%s\"", url);
