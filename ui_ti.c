@@ -418,7 +418,7 @@ nearentry(Item *entry, int direction)
 	lastitem = dir->nitems;
 	item = dir->curline + direction;
 
-	for (; item >= 0 && item < lastitem; item += direction) {
+	for (; item < lastitem; item += direction) {
 		if (dir->items[item].type != 'i')
 			return item;
 	}
