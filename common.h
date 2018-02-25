@@ -28,7 +28,7 @@ int asprintf(char **s, const char *fmt, ...);
 void die(const char *fmt, ...);
 size_t mbsprint(const char *s, size_t len);
 const char *typedisplay(char t);
-void uidisplay(Item *item);
+void uidisplay(Item *entry);
 Item *uiselectitem(Item *entry);
 void uistatus(char *fmt, ...);
 void uicleanup(void);
