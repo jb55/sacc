@@ -386,7 +386,7 @@ sendselector(int sock, const char *selector)
 	msg = p = xmalloc(ln);
 	snprintf(msg, ln--, "%s\r\n", selector);
 
-	while ((n = write(sock, p, ln)) != -1 && n != 0) {
+	while ((n = write(sock, p, ln)) > 0) {
 		ln -= n;
 		p += n;
 	}
