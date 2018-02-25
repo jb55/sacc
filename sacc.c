@@ -248,7 +248,8 @@ displaytextitem(Item *item)
 		return;
 	case 0:
 		parent = 0;
-		pagerin = popen("$PAGER", "we");
+		if (!(pagerin = popen("$PAGER", "we")))
+			_exit(1);
 		fputs(item->raw, pagerin);
 		exit(pclose(pagerin));
 	default:
