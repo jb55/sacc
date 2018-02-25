@@ -457,6 +457,7 @@ download(Item *item, int dest)
 		return 0;
 	}
 
+	w = 0;
 	while ((r = read(src, buf, BUFSIZ)) > 0) {
 		while ((w = write(dest, buf, r)) > 0)
 			r -= w;
