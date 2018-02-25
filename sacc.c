@@ -113,7 +113,7 @@ xmalloc(const size_t n)
 	void *m = malloc(n);
 
 	if (!m)
-		die("malloc: %s\n", strerror(errno));
+		die("malloc: %s", strerror(errno));
 
 	return m;
 }
@@ -135,7 +135,7 @@ xstrdup(const char *str)
 	char *s;
 
 	if (!(s = strdup(str)))
-		die("strdup: %s\n", strerror(errno));
+		die("strdup: %s", strerror(errno));
 
 	return s;
 }
@@ -582,8 +582,8 @@ plumbitem(Item *item)
 		clear(&path);
 		if (!tag) {
 			if (asprintf(&path, "%s/%s", tmpdir, file) < 0)
-				die("Can't generate tmpdir path: ",
-				    strerror(errno));
+				die("Can't generate tmpdir path: %s/%s: %s",
+				    tmpdir, file, strerror(errno));
 		}
 	}
 
