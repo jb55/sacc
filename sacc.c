@@ -121,10 +121,10 @@ xmalloc(const size_t n)
 static void *
 xcalloc(size_t n)
 {
-	char *m = xmalloc(n);
+	char *m = calloc(1, n);
 
-	while (n)
-		m[--n] = 0;
+	if (!m)
+		die("calloc: %s", strerror(errno));
 
 	return m;
 }
