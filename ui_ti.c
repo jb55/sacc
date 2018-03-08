@@ -17,10 +17,6 @@ static char bufout[256];
 static struct termios tsave;
 static struct termios tsacc;
 static Item *curentry;
-#if defined(__NetBSD__)
-#undef tparm
-#define tparm tiparm
-#endif
 
 void
 uisetup(void)
@@ -31,18 +27,18 @@ uisetup(void)
 	tcsetattr(0, TCSANOW, &tsacc);
 
 	setupterm(NULL, 1, NULL);
-	putp(tparm(clear_screen));
-	putp(tparm(save_cursor));
-	putp(tparm(change_scroll_region, 0, lines-2));
-	putp(tparm(restore_cursor));
+	putp(tparm(clear_screen, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(change_scroll_region, 0, lines-2, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(restore_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	fflush(stdout);
 }
 
 void
 uicleanup(void)
 {
-	putp(tparm(change_scroll_region, 0, lines-1));
-	putp(tparm(clear_screen));
+	putp(tparm(change_scroll_region, 0, lines-1, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(clear_screen, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	tcsetattr(0, TCSANOW, &tsave);
 	fflush(stdout);
 }
@@ -55,11 +51,11 @@ uiprompt(char *fmt, ...)
 	size_t n;
 	ssize_t r;
 
-	putp(tparm(save_cursor));
+	putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-	putp(tparm(cursor_address, lines-1, 0));
-	putp(tparm(clr_eol));
-	putp(tparm(enter_standout_mode));
+	putp(tparm(cursor_address, lines-1, 0, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(clr_eol, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(enter_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
 	va_start(ap, fmt);
 	if (vsnprintf(bufout, sizeof(bufout), fmt, ap) >= sizeof(bufout))
@@ -67,11 +63,11 @@ uiprompt(char *fmt, ...)
 	va_end(ap);
 	n = mbsprint(bufout, columns);
 
-	putp(tparm(exit_standout_mode));
+	putp(tparm(exit_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	if (n < columns)
 		printf("%*s", columns - n, " ");
 
-	putp(tparm(cursor_address, lines-1, n));
+	putp(tparm(cursor_address, lines-1, n, 0, 0, 0, 0, 0, 0, 0));
 
 	tsacc.c_lflag |= (ECHO|ICANON);
 	tcsetattr(0, TCSANOW, &tsacc);
@@ -82,7 +78,7 @@ uiprompt(char *fmt, ...)
 
 	tsacc.c_lflag &= ~(ECHO|ICANON);
 	tcsetattr(0, TCSANOW, &tsacc);
-	putp(tparm(restore_cursor));
+	putp(tparm(restore_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	fflush(stdout);
 
 	if (r < 0) {
@@ -138,10 +134,10 @@ uistatus(char *fmt, ...)
 	va_list ap;
 	size_t n;
 
-	putp(tparm(save_cursor));
+	putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-	putp(tparm(cursor_address, lines-1, 0));
-	putp(tparm(enter_standout_mode));
+	putp(tparm(cursor_address, lines-1, 0, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(enter_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
 	va_start(ap, fmt);
 	n = vsnprintf(bufout, sizeof(bufout), fmt, ap);
@@ -155,11 +151,11 @@ uistatus(char *fmt, ...)
 		bufout[sizeof(bufout)-1] = '\0';
 
 	n = mbsprint(bufout, columns);
-	putp(tparm(exit_standout_mode));
+	putp(tparm(exit_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	if (n < columns)
 		printf("%*s", columns - n, " ");
 
-	putp(tparm(restore_cursor));
+	putp(tparm(restore_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	fflush(stdout);
 
 	getchar();
@@ -173,10 +169,10 @@ displaystatus(Item *item)
 	size_t n, nitems = dir ? dir->nitems : 0;
 	unsigned long long printoff = dir ? dir->printoff : 0;
 
-	putp(tparm(save_cursor));
+	putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-	putp(tparm(cursor_address, lines-1, 0));
-	putp(tparm(enter_standout_mode));
+	putp(tparm(cursor_address, lines-1, 0, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(enter_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	fmt = (strcmp(item->port, "70") && strcmp(item->port, "gopher")) ?
 	      "%1$3lld%%| %2$s:%5$s/%3$c%4$s" : "%3lld%%| %s/%c%s";
 	if (snprintf(bufout, sizeof(bufout), fmt,
@@ -186,11 +182,11 @@ displaystatus(Item *item)
 	    >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
 	n = mbsprint(bufout, columns);
-	putp(tparm(exit_standout_mode));
+	putp(tparm(exit_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	if (n < columns)
 		printf("%*s", columns - n, " ");
 
-	putp(tparm(restore_cursor));
+	putp(tparm(restore_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	fflush(stdout);
 }
 
@@ -203,10 +199,10 @@ displayuri(Item *item)
 	if (item->type == 0 || item->type == 'i')
 		return;
 
-	putp(tparm(save_cursor));
+	putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-	putp(tparm(cursor_address, lines-1, 0));
-	putp(tparm(enter_standout_mode));
+	putp(tparm(cursor_address, lines-1, 0, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(enter_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	switch (item->type) {
 	case '8':
 		n = snprintf(bufout, sizeof(bufout), "telnet://%s@%s:%s",
@@ -234,11 +230,11 @@ displayuri(Item *item)
 		bufout[sizeof(bufout)-1] = '\0';
 
 	n = mbsprint(bufout, columns);
-	putp(tparm(exit_standout_mode));
+	putp(tparm(exit_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	if (n < columns)
 		printf("%*s", columns - n, " ");
 
-	putp(tparm(restore_cursor));
+	putp(tparm(restore_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	fflush(stdout);
 }
 
@@ -255,13 +251,13 @@ uidisplay(Item *entry)
 
 	curentry = entry;
 
-	putp(tparm(clear_screen));
+	putp(tparm(clear_screen, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	displaystatus(entry);
 
 	if (!(dir = entry->dat))
 		return;
 
-	putp(tparm(save_cursor));
+	putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
 	items = dir->items;
 	nitems = dir->nitems;
@@ -271,18 +267,20 @@ uidisplay(Item *entry)
 
 	for (i = printoff; i < nitems && i < lastln; ++i) {
 		if (i != printoff)
-			putp(tparm(cursor_down));
+			putp(tparm(cursor_down, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		if (i == curln) {
-			putp(tparm(save_cursor));
-			putp(tparm(enter_standout_mode));
+			putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+			putp(tparm(enter_standout_mode,
+			           0, 0, 0, 0, 0, 0, 0, 0, 0));
 		}
 		printitem(&items[i]);
-		putp(tparm(column_address, 0));
+		putp(tparm(column_address, 0, 0, 0, 0, 0, 0, 0, 0));
 		if (i == curln)
-			putp(tparm(exit_standout_mode));
+			putp(tparm(exit_standout_mode,
+			           0, 0, 0, 0, 0, 0, 0, 0, 0));
 	}
 
-	putp(tparm(restore_cursor));
+	putp(tparm(restore_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	fflush(stdout);
 }
 
@@ -308,34 +306,36 @@ movecurline(Item *item, int l)
 	if (l > 0) {
 		offline = dir->printoff + lines-1;
 		if (curline - dir->printoff >= plines / 2 && offline < nitems) {
-			putp(tparm(save_cursor));
+			putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-			putp(tparm(cursor_address, plines, 0));
-			putp(tparm(scroll_forward));
+			putp(tparm(cursor_address, plines,
+			           0, 0, 0, 0, 0, 0, 0, 0));
+			putp(tparm(scroll_forward, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 			printitem(&dir->items[offline]);
 
-			putp(tparm(restore_cursor));
+			putp(tparm(restore_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 			dir->printoff += l;
 		}
 	} else {
 		offline = dir->printoff + l;
 		if (curline - offline <= plines / 2 && offline >= 0) {
-			putp(tparm(save_cursor));
+			putp(tparm(save_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
-			putp(tparm(cursor_address, 0, 0));
-			putp(tparm(scroll_reverse));
+			putp(tparm(cursor_address, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+			putp(tparm(scroll_reverse, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 			printitem(&dir->items[offline]);
 			putchar('\n');
 
-			putp(tparm(restore_cursor));
+			putp(tparm(restore_cursor, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 			dir->printoff += l;
 		}
 	}
 
-	putp(tparm(cursor_address, curline - dir->printoff, 0));
-	putp(tparm(enter_standout_mode));
+	putp(tparm(cursor_address, curline - dir->printoff,
+	           0, 0, 0, 0, 0, 0, 0, 0));
+	putp(tparm(enter_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	printitem(&dir->items[curline]);
-	putp(tparm(exit_standout_mode));
+	putp(tparm(exit_standout_mode, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 	displaystatus(item);
 	fflush(stdout);
 }
@@ -555,7 +555,7 @@ uisigwinch(int signal)
 	Dir *dir;
 
 	setupterm(NULL, 1, NULL);
-	putp(tparm(change_scroll_region, 0, lines-2));
+	putp(tparm(change_scroll_region, 0, lines-2, 0, 0, 0, 0, 0, 0, 0));
 
 	if (!curentry || !(dir = curentry->dat))
 		return;
