@@ -5,6 +5,7 @@ typedef struct dir Dir;
 
 struct item {
 	char type;
+	char redtype;
 	char *username;
 	char *selector;
 	char *host;

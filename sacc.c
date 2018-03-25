@@ -315,10 +315,10 @@ molditem(Item *item, char **raw)
 static Dir *
 molddiritem(char *raw)
 {
-	Item *items = NULL;
+	Item *item, *items = NULL;
 	char *s, *nl, *p;
 	Dir *dir;
-	size_t i, nitems;
+	size_t i, n, nitems;
 
 	for (s = nl = raw, nitems = 0; p = strchr(nl, '\n'); ++nitems) {
 		s = nl;
@@ -335,8 +335,18 @@ molddiritem(char *raw)
 	items = xreallocarray(items, nitems, sizeof(Item));
 	memset(items, 0, nitems * sizeof(Item));
 
-	for (i = 0; i < nitems; ++i)
-		molditem(&items[i], &raw);
+	for (i = 0; i < nitems; ++i) {
+		item = &items[i];
+		molditem(item, &raw);
+		if (item->type == '+') {
+			for (n = i - 1; n < (size_t)-1; --n) {
+				if (items[n].type != '+') {
+					item->redtype = items[n].type;
+					break;
+				}
+			}
+		}
+	}
 
 	dir->items = items;
 	dir->nitems = nitems;
@@ -622,7 +632,7 @@ dig(Item *entry, Item *item)
 	if (!item->entry)
 		item->entry = entry ? entry : item;
 
-	switch (item->type) {
+	switch (item->redtype ? item->redtype : item->type) {
 	case 'h': /* fallthrough */
 		if (!strncmp(item->selector, "URL:", 4)) {
 			plumb(item->selector+4);
@@ -633,7 +643,6 @@ dig(Item *entry, Item *item)
 			return 0;
 		break;
 	case '1':
-	case '+':
 	case '7':
 		if (!fetchitem(item) || !(item->dat = molddiritem(item->raw)))
 			return 0;
@@ -719,13 +728,12 @@ printout(Item *hole)
 	if (!hole)
 		return;
 
-	switch (hole->type) {
+	switch (hole->redtype ? hole->redtype : hole->type) {
 	case '0':
 		if (dig(hole, hole))
 			fputs(hole->raw, stdout);
 		return;
 	case '1':
-	case '+':
 		if (dig(hole, hole))
 			printdir(hole);
 	default:
@@ -739,7 +747,7 @@ delve(Item *hole)
 	Item *entry = NULL;
 
 	while (hole) {
-		switch (hole->type) {
+		switch (hole->redtype ? hole->redtype : hole->type) {
 		case 'h':
 		case '0':
 			if (dig(entry, hole))
