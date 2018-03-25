@@ -8,3 +8,6 @@ MANDIR = $(PREFIX)/share/man/man1
 # ti (screen-oriented)
 UI=ti
 LIBS=-lcurses
+
+# Define NEED_ASPRINTF in your cflags is your system doesn't provide asprintf()
+#CFLAGS = -DNEED_ASPRINTF

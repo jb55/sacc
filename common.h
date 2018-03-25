@@ -22,9 +22,9 @@ struct dir {
 	size_t curline;
 };
 
-#ifndef asprintf
+#ifdef NEED_ASPRINTF
 int asprintf(char **s, const char *fmt, ...);
-#endif /* asprintf */
+#endif /* NEED_ASPRINTF */
 void die(const char *fmt, ...);
 size_t mbsprint(const char *s, size_t len);
 const char *typedisplay(char t);

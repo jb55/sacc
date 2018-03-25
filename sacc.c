@@ -40,7 +40,7 @@ die(const char *fmt, ...)
 	exit(1);
 }
 
-#ifndef asprintf
+#ifdef NEED_ASPRINTF
 int
 asprintf(char **s, const char *fmt, ...)
 {
@@ -60,7 +60,7 @@ asprintf(char **s, const char *fmt, ...)
 
 	return n;
 }
-#endif /* asprintf */
+#endif /* NEED_ASPRINTF */
 
 /* print `len' columns of characters. */
 size_t
