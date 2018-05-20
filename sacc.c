@@ -62,6 +62,18 @@ asprintf(char **s, const char *fmt, ...)
 }
 #endif /* NEED_ASPRINTF */
 
+#ifdef NEED_STRCASESTR
+char *
+strcasestr(const char *h, const char *n)
+{
+	size_t l = strlen(n);
+	for (; *h; h++)
+		if (!strncasecmp(h, n, l))
+			return (char *)h;
+	return 0;
+}
+#endif /* NEED_STRCASESTR */
+
 /* print `len' columns of characters. */
 size_t
 mbsprint(const char *s, size_t len)

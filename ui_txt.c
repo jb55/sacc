@@ -223,7 +223,7 @@ searchinline(const char *searchstr, Item *entry)
 		return;
 
 	for (i = 0; i < dir->nitems; ++i)
-		if (strstr(dir->items[i].username, searchstr))
+		if (strcasestr(dir->items[i].username, searchstr))
 			printuri(&(dir->items[i]), i + 1);
 }
 

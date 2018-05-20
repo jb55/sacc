@@ -392,14 +392,14 @@ searchinline(const char *searchstr, Item *entry, int pos)
 
 	if (pos > 0) {
 		for (i = dir->curline + 1; i < dir->nitems; ++i) {
-			if (strstr(dir->items[i].username, searchstr)) {
+			if (strcasestr(dir->items[i].username, searchstr)) {
 				jumptoline(entry, i, 1);
 				break;
 			}
 		}
 	} else {
 		for (i = dir->curline - 1; i > -1; --i) {
-			if (strstr(dir->items[i].username, searchstr)) {
+			if (strcasestr(dir->items[i].username, searchstr)) {
 				jumptoline(entry, i, 1);
 				break;
 			}

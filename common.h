@@ -26,6 +26,9 @@ struct dir {
 #ifdef NEED_ASPRINTF
 int asprintf(char **s, const char *fmt, ...);
 #endif /* NEED_ASPRINTF */
+#ifdef NEED_STRCASESTR
+char *strcasestr(const char *h, const char *n);
+#endif /* NEED_STRCASESTR */
 void die(const char *fmt, ...);
 size_t mbsprint(const char *s, size_t len);
 const char *typedisplay(char t);
