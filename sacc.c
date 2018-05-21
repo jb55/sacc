@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -66,11 +67,19 @@ asprintf(char **s, const char *fmt, ...)
 char *
 strcasestr(const char *h, const char *n)
 {
-	size_t l = strlen(n);
-	for (; *h; h++)
-		if (!strncasecmp(h, n, l))
+	size_t i;
+
+	if (!n[0])
+		return h;
+
+	for (; *h; ++h{
+		for (i = 0; n[i] && tolower(n[i]) == tolower(h[i]); ++i)
+			;
+		if (n[i] == '\0')
 			return (char *)h;
-	return 0;
+	}
+
+	return NULL;
 }
 #endif /* NEED_STRCASESTR */
 
