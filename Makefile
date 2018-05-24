@@ -29,7 +29,7 @@ install: $(BIN)
 	cp -f $(MAN) $(DESTDIR)$(MANDIR)
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN)
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN) $(DESTDIR)$(MANDIR)/$(MAN)
 
 # Stock FLAGS
 SACCCFLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700 -D_BSD_SOURCE -D_GNU_SOURCE \
