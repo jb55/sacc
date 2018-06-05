@@ -70,9 +70,9 @@ strcasestr(const char *h, const char *n)
 	size_t i;
 
 	if (!n[0])
-		return h;
+		return (char *)h;
 
-	for (; *h; ++h{
+	for (; *h; ++h) {
 		for (i = 0; n[i] && tolower(n[i]) == tolower(h[i]); ++i)
 			;
 		if (n[i] == '\0')
