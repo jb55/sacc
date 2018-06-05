@@ -23,19 +23,16 @@ struct dir {
 	size_t curline;
 };
 
-#ifdef NEED_ASPRINTF
-int asprintf(char **s, const char *fmt, ...);
-#endif /* NEED_ASPRINTF */
+void die(const char *fmt, ...);
+size_t mbsprint(const char *s, size_t len);
 #ifdef NEED_STRCASESTR
 char *strcasestr(const char *h, const char *n);
 #endif /* NEED_STRCASESTR */
-void die(const char *fmt, ...);
-size_t mbsprint(const char *s, size_t len);
 const char *typedisplay(char t);
-void uidisplay(Item *entry);
-Item *uiselectitem(Item *entry);
-void uistatus(char *fmt, ...);
 void uicleanup(void);
+void uidisplay(Item *entry);
 char *uiprompt(char *fmt, ...);
+Item *uiselectitem(Item *entry);
 void uisetup(void);
 void uisigwinch(int signal);
+void uistatus(char *fmt, ...);
