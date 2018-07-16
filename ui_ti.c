@@ -274,7 +274,7 @@ uidisplay(Item *entry)
 			           0, 0, 0, 0, 0, 0, 0, 0, 0));
 		}
 		printitem(&items[i]);
-		putp(tparm(column_address, 0, 0, 0, 0, 0, 0, 0, 0));
+		putp(tparm(column_address, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		if (i == curln)
 			putp(tparm(exit_standout_mode,
 			           0, 0, 0, 0, 0, 0, 0, 0, 0));
