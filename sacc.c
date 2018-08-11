@@ -230,10 +230,12 @@ typedisplay(char t)
 		return "HTML+";
 	case 'i':
 		return "    |";
-	case 's':
-		return "Snd |";
 	default:
-		return "!   |";
+		/* "Characters '0' through 'Z' are reserved." (ASCII) */
+		if (t >= '0' && t <= 'Z')
+			return "!   |";
+		else
+			return "UNKN|";
 	}
 }
 
@@ -647,13 +649,15 @@ static int
 dig(Item *entry, Item *item)
 {
 	char *plumburi = NULL;
+	int t;
 
 	if (item->raw) /* already in cache */
 		return item->type;
 	if (!item->entry)
 		item->entry = entry ? entry : item;
 
-	switch (item->redtype ? item->redtype : item->type) {
+	t = item->redtype ? item->redtype : item->type;
+	switch (t) {
 	case 'h': /* fallthrough */
 		if (!strncmp(item->selector, "URL:", 4)) {
 			plumb(item->selector+4);
@@ -681,10 +685,6 @@ dig(Item *entry, Item *item)
 		plumb(plumburi);
 		free(plumburi);
 		return 0;
-	case 'g':
-	case 'I':
-		plumbitem(item);
-		return 0;
 	case 'T':
 		if (asprintf(&plumburi, "tn3270://%s@%s:%s", item->selector,
 		             item->host, item->port) < 0)
@@ -692,9 +692,14 @@ dig(Item *entry, Item *item)
 		plumb(plumburi);
 		free(plumburi);
 		return 0;
+	case 'g':
+	case 'I':
 	default:
-		uistatus("Type %c (%s) not supported",
-		        item->type, typedisplay(item->type));
+		if (t >= '0' && t <= 'Z')
+			uistatus("Type %c (%s) not supported",
+			        item->type, typedisplay(item->type));
+		else
+			plumbitem(item);
 		return 0;
 	}
 
@@ -783,6 +788,10 @@ delve(Item *hole)
 			if (searchitem(entry, hole))
 				entry = hole;
 			break;
+		case 0:
+			uistatus("Couldn't get %s:%s/%c%s", hole->host,
+			         hole->port, hole->type, hole->selector);
+			break;
 		case '4':
 		case '5':
 		case '6': /* TODO decode? */
@@ -791,11 +800,9 @@ delve(Item *hole)
 		case 'g':
 		case 'I':
 		case 'T':
+		default:
 			dig(entry, hole);
 			break;
-		case 0:
-			uistatus("Couldn't get %s:%s/%c%s", hole->host,
-			         hole->port, hole->type, hole->selector);
 		}
 
 		if (!entry)
