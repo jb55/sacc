@@ -218,10 +218,10 @@ displayuri(Item *item)
 		break;
 	default:
 		fmt = strcmp(item->port, "70") ?
-		      "%1$s: gopher://%2$s:%5$s/%3$c%4$s" :
-		      "%s: gopher://%s/%c%s";
+		      "gopher://%1$s:%4$s/%2$c%3$s" :
+		      "gopher://%s/%c%s";
 		n = snprintf(bufout, sizeof(bufout), fmt,
-		             item->username, item->host, item->type,
+		             item->host, item->type,
 		             item->selector, item->port);
 		break;
 	}
