@@ -697,7 +697,7 @@ dig(Item *entry, Item *item)
 	default:
 		if (t >= '0' && t <= 'Z')
 			uistatus("Type %c (%s) not supported",
-			        item->type, typedisplay(item->type));
+			         t, typedisplay(t));
 		else
 			plumbitem(item);
 		return 0;
