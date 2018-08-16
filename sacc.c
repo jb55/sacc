@@ -692,14 +692,15 @@ dig(Item *entry, Item *item)
 		plumb(plumburi);
 		free(plumburi);
 		return 0;
-	case 'g':
-	case 'I':
 	default:
-		if (t >= '0' && t <= 'Z')
+		if (t >= '0' && t <= 'Z') {
 			uistatus("Type %c (%s) not supported",
 			         t, typedisplay(t));
-		else
-			plumbitem(item);
+			return 0;
+		}
+	case 'g':
+	case 'I':
+		plumbitem(item);
 		return 0;
 	}
 
