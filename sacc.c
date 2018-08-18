@@ -679,14 +679,16 @@ dig(Item *entry, Item *item)
 		downloaditem(item);
 		return 0;
 	case '8':
-		if (asprintf(&plumburi, "telnet://%s@%s:%s", item->selector,
+		if (asprintf(&plumburi, "telnet://%s%s%s:%s",
+		             item->selector, item->selector ? "@" : "",
 		             item->host, item->port) < 0)
 			return 0;
 		plumb(plumburi);
 		free(plumburi);
 		return 0;
 	case 'T':
-		if (asprintf(&plumburi, "tn3270://%s@%s:%s", item->selector,
+		if (asprintf(&plumburi, "tn3270://%s%s%s:%s",
+		             item->selector, item->selector ? "@" : "",
 		             item->host, item->port) < 0)
 			return 0;
 		plumb(plumburi);
