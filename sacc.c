@@ -283,11 +283,11 @@ displaytextitem(Item *item)
 }
 
 static char *
-pickfield(char **raw, char sep)
+pickfield(char **raw, const char *sep)
 {
 	char *c, *f = *raw;
 
-	for (c = *raw; *c && *c != sep; ++c)
+	for (c = *raw; *c && strchr(sep, *c) == NULL; ++c)
 		;
 
 	*c = '\0';
@@ -309,7 +309,7 @@ invaliditem(char *raw)
 	if (c)
 		*raw++ = '\0';
 
-	return (tabs == 3) ? NULL : raw;
+	return (tabs >= 3) ? NULL : raw;
 }
 
 static void
@@ -327,10 +327,12 @@ molditem(Item *item, char **raw)
 	}
 
 	item->type = *raw[0]++;
-	item->username = pickfield(raw, '\t');
-	item->selector = pickfield(raw, '\t');
-	item->host = pickfield(raw, '\t');
-	item->port = pickfield(raw, '\r');
+	item->username = pickfield(raw, "\t");
+	item->selector = pickfield(raw, "\t");
+	item->host = pickfield(raw, "\t");
+	item->port = pickfield(raw, "\t\r");
+	while (*raw[0] != '\0')
+		++*raw;
 	if (!*raw[0])
 		++*raw;
 }
