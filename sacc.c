@@ -287,7 +287,7 @@ pickfield(char **raw, const char *sep)
 {
 	char *c, *f = *raw;
 
-	for (c = *raw; *c && strchr(sep, *c) == NULL; ++c)
+	for (c = *raw; *c && !strchr(sep, *c); ++c)
 		;
 
 	*c = '\0';
@@ -306,10 +306,12 @@ invaliditem(char *raw)
 		if (c == '\t')
 			++tabs;
 	}
-	if (c)
+	if (tabs < 3) {
 		*raw++ = '\0';
+		return raw;
+	}
 
-	return (tabs >= 3) ? NULL : raw;
+	return NULL;
 }
 
 static void
@@ -331,10 +333,9 @@ molditem(Item *item, char **raw)
 	item->selector = pickfield(raw, "\t");
 	item->host = pickfield(raw, "\t");
 	item->port = pickfield(raw, "\t\r");
-	while (*raw[0] != '\0')
+	while (*raw[0] != '\n')
 		++*raw;
-	if (!*raw[0])
-		++*raw;
+	*raw[0]++ = '\0';
 }
 
 static Dir *
