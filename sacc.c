@@ -769,10 +769,12 @@ searchitem(Item *entry, Item *item)
 static void
 printout(Item *hole)
 {
+	char t;
+
 	if (!hole)
 		return;
 
-	switch (hole->redtype ? hole->redtype : hole->type) {
+	switch (hole->redtype ? hole->redtype : (t = hole->type)) {
 	case '0':
 		if (dig(hole, hole))
 			fputs(hole->raw, stdout);
@@ -780,7 +782,24 @@ printout(Item *hole)
 	case '1':
 		if (dig(hole, hole))
 			printdir(hole);
+		return;
 	default:
+		if (t >= '0' && t <= 'Z') {
+			diag("Type %c (%s) not supported", t, typedisplay(t));
+			return;
+		}
+	case '4':
+	case '5':
+	case '6':
+	case '9':
+	case 'g':
+	case 'I':
+		download(hole, 1);
+	case '2':
+	case '3':
+	case '7':
+	case '8':
+	case 'T':
 		return;
 	}
 }
