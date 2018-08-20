@@ -28,6 +28,19 @@ static int devnullfd;
 static int parent = 1;
 static int interactive;
 
+static void (*diag)(char *fmt, ...);
+
+void
+stddiag(char *fmt, ...)
+{
+	va_list arg;
+
+	va_start(arg, fmt);
+	vfprintf(stderr, fmt, arg);
+	va_end(arg);
+	fputc('\n', stderr);
+}
+
 void
 die(const char *fmt, ...)
 {
@@ -267,7 +280,7 @@ displaytextitem(Item *item)
 	uicleanup();
 	switch (pid = fork()) {
 	case -1:
-		uistatus("Couldn't fork.");
+		diag("Couldn't fork.");
 		return;
 	case 0:
 		parent = 0;
@@ -353,7 +366,7 @@ molddiritem(char *raw)
 	if (!strcmp(s, ".\r\n") || !strcmp(s, ".\n"))
 		--nitems;
 	if (!nitems) {
-		uistatus("Couldn't parse dir item");
+		diag("Couldn't parse dir item");
 		return NULL;
 	}
 
@@ -404,7 +417,7 @@ getrawitem(int sock)
 	*buf = '\0';
 
 	if (n < 0) {
-		uistatus("Can't read socket: %s", strerror(errno));
+		diag("Can't read socket: %s", strerror(errno));
 		clear(&raw);
 	}
 
@@ -429,7 +442,7 @@ sendselector(int sock, const char *selector)
 
 	free(msg);
 	if (n == -1)
-		uistatus("Can't send message: %s", strerror(errno));
+		diag("Can't send message: %s", strerror(errno));
 
 	return n;
 }
@@ -446,8 +459,8 @@ connectto(const char *host, const char *port)
 	int sock, r;
 
 	if (r = getaddrinfo(host, port, &hints, &addrs)) {
-		uistatus("Can't resolve hostname \"%s\": %s",
-		         host, gai_strerror(r));
+		diag("Can't resolve hostname \"%s\": %s",
+		     host, gai_strerror(r));
 		return -1;
 	}
 
@@ -462,12 +475,12 @@ connectto(const char *host, const char *port)
 		break;
 	}
 	if (sock < 0) {
-		uistatus("Can't open socket: %s", strerror(errno));
+		diag("Can't open socket: %s", strerror(errno));
 		return -1;
 	}
 	if (r < 0) {
-		uistatus("Can't connect to: %s:%s: %s",
-		         host, port, strerror(errno));
+		diag("Can't connect to: %s:%s: %s",
+		     host, port, strerror(errno));
 		return -1;
 	}
 
@@ -538,8 +551,8 @@ downloaditem(Item *item)
 	}
 
 	if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
-		uistatus("Can't open destination file %s: %s",
-		         path, strerror(errno));
+		diag("Can't open destination file %s: %s",
+		     path, strerror(errno));
 		errno = 0;
 		goto cleanup;
 	}
@@ -567,7 +580,7 @@ fetchitem(Item *item)
 	close(sock);
 
 	if (item->raw && !*item->raw) {
-		uistatus("Empty response from server");
+		diag("Empty response from server");
 		clear(&item->raw);
 	}
 
@@ -579,7 +592,7 @@ plumb(char *url)
 {
 	switch (fork()) {
 	case -1:
-		uistatus("Couldn't fork.");
+		diag("Couldn't fork.");
 		return;
 	case 0:
 		parent = 0;
@@ -589,7 +602,7 @@ plumb(char *url)
 			_exit(1);
 	}
 
-	uistatus("Plumbed \"%s\"", url);
+	diag("Plumbed \"%s\"", url);
 }
 
 static void
@@ -627,8 +640,8 @@ plumbitem(Item *item)
 
 	if (path && (!tag || strcmp(tag, path))) {
 		if ((dest = open(path, O_WRONLY|O_CREAT|O_EXCL, mode)) < 0) {
-			uistatus("Can't open destination file %s: %s",
-			         path, strerror(errno));
+			diag("Can't open destination file %s: %s",
+			     path, strerror(errno));
 			errno = 0;
 			goto cleanup;
 		}
@@ -699,8 +712,7 @@ dig(Item *entry, Item *item)
 		return 0;
 	default:
 		if (t >= '0' && t <= 'Z') {
-			uistatus("Type %c (%s) not supported",
-			         t, typedisplay(t));
+			diag("Type %c (%s) not supported", t, typedisplay(t));
 			return 0;
 		}
 	case 'g':
@@ -795,8 +807,8 @@ delve(Item *hole)
 				entry = hole;
 			break;
 		case 0:
-			uistatus("Couldn't get %s:%s/%c%s", hole->host,
-			         hole->port, hole->type, hole->selector);
+			diag("Couldn't get %s:%s/%c%s", hole->host,
+			     hole->port, hole->type, hole->selector);
 			break;
 		case '4':
 		case '5':
@@ -933,10 +945,13 @@ main(int argc, char *argv[])
 	mainurl = xstrdup(argv[1]);
 
 	mainentry = moldentry(mainurl);
-	if (interactive)
+	if (interactive) {
+		diag = uistatus;
 		delve(mainentry);
-	else
+	} else {
+		diag = stddiag;
 		printout(mainentry);
+	}
 
 	exit(0);
 }
