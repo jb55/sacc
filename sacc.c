@@ -756,8 +756,9 @@ searchitem(Item *entry, Item *item)
 	if (!(sel = searchselector(item)))
 		return 0;
 
-	if (sel != item->tag) {
+	if (sel != item->tag)
 		clearitem(item);
+	if (!item->dat) {
 		selector = item->selector;
 		item->selector = item->tag = sel;
 		dig(entry, item);
@@ -780,6 +781,7 @@ printout(Item *hole)
 			fputs(hole->raw, stdout);
 		return;
 	case '1':
+	case '7':
 		if (dig(hole, hole))
 			printdir(hole);
 		return;
@@ -797,7 +799,6 @@ printout(Item *hole)
 		download(hole, 1);
 	case '2':
 	case '3':
-	case '7':
 	case '8':
 	case 'T':
 		return;
@@ -902,6 +903,15 @@ moldentry(char *url)
 	entry = xcalloc(sizeof(Item));
 	entry->type = gopherpath[0];
 	entry->username = entry->selector = ++gopherpath;
+	if (entry->type == '7') {
+		for (; *p; ++p) {
+			if (*p == '\t') {
+				asprintf(&entry->tag, "%s", gopherpath);
+				*p = '\0';
+				break;
+			}
+		}
+	}
 	entry->host = host;
 	entry->port = port;
 	entry->entry = entry;
