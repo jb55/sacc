@@ -298,13 +298,16 @@ displaytextitem(Item *item)
 static char *
 pickfield(char **raw, const char *sep)
 {
-	char *c, *f = *raw;
+	char c, *r, *f = *raw;
 
-	for (c = *raw; *c && !strchr(sep, *c); ++c)
-		;
+	for (r = *raw; (c = *r) && !strchr(sep, c); ++r) {
+		if (c == '\n')
+			goto skipsep;
+	}
 
-	*c = '\0';
-	*raw = c+1;
+	*r++ = '\0';
+skipsep:
+	*raw = r;
 
 	return f;
 }
