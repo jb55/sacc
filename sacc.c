@@ -721,6 +721,7 @@ dig(Item *entry, Item *item)
 	case 'g':
 	case 'I':
 		plumbitem(item);
+	case 'i':
 		return 0;
 	}
 
