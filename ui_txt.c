@@ -249,7 +249,7 @@ uiselectitem(Item *entry)
 			putchar('\n');
 			return NULL;
 		}
-		if (isdigit(*buf)) {
+		if (isdigit((unsigned char)*buf)) {
 			cmd = '\0';
 			nl = '\0';
 			if (sscanf(buf, "%d%c", &item, &nl) != 2 || nl != '\n')
@@ -263,7 +263,7 @@ uiselectitem(Item *entry)
 			*sstr = '\0';
 			sstr = buf+1;
 			cmd = *buf;
-		} else if (isdigit(*(buf+1))) {
+		} else if (isdigit((unsigned char)*(buf+1))) {
 			nl = '\0';
 			if (sscanf(buf+1, "%d%c", &item, &nl) != 2 || nl != '\n')
 				item = -1;

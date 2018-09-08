@@ -86,7 +86,8 @@ strcasestr(const char *h, const char *n)
 		return (char *)h;
 
 	for (; *h; ++h) {
-		for (i = 0; n[i] && tolower(n[i]) == tolower(h[i]); ++i)
+		for (i = 0; n[i] && tolower((unsigned char)n[i]) ==
+		            tolower((unsigned char)h[i]); ++i)
 			;
 		if (n[i] == '\0')
 			return (char *)h;
