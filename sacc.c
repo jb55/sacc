@@ -958,6 +958,8 @@ setup(void)
 	sa.sa_flags = SA_RESTART;
 	sa.sa_handler = exit;
 	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
 
 	if (mkdir(tmpdir, S_IRWXU) < 0 && errno != EEXIST)
 		die("mkdir: %s: %s", tmpdir, strerror(errno));
