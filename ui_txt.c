@@ -331,6 +331,10 @@ void
 uisigwinch(int signal)
 {
 	uisetup();
+
+	if (!curentry)
+		return;
+
 	putchar('\n');
 	uidisplay(curentry);
 	printstatus(curentry, cmd);
