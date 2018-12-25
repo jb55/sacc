@@ -454,6 +454,7 @@ sendselector(int sock, const char *selector)
 static int
 connectto(const char *host, const char *port)
 {
+	sigset_t set, oset;
 	static const struct addrinfo hints = {
 	    .ai_family = AF_UNSPEC,
 	    .ai_socktype = SOCK_STREAM,
@@ -462,10 +463,13 @@ connectto(const char *host, const char *port)
 	struct addrinfo *addrs, *addr;
 	int sock, r;
 
+	sigfillset(&set);
+	sigprocmask(SIG_BLOCK, &set, &oset);
+
 	if (r = getaddrinfo(host, port, &hints, &addrs)) {
 		diag("Can't resolve hostname \"%s\": %s",
 		     host, gai_strerror(r));
-		return -1;
+		goto err;
 	}
 
 	for (addr = addrs; addr; addr = addr->ai_next) {
@@ -483,15 +487,20 @@ connectto(const char *host, const char *port)
 
 	if (sock < 0) {
 		diag("Can't open socket: %s", strerror(errno));
-		return -1;
+		goto err;
 	}
 	if (r < 0) {
 		diag("Can't connect to: %s:%s: %s",
 		     host, port, strerror(errno));
-		return -1;
+		goto err;
 	}
 
+	sigprocmask(SIG_SETMASK, &oset, NULL);
 	return sock;
+
+err:
+	sigprocmask(SIG_SETMASK, &oset, NULL);
+	return -1;
 }
 
 static int
