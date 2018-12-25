@@ -478,6 +478,9 @@ connectto(const char *host, const char *port)
 		}
 		break;
 	}
+
+	freeaddrinfo(addrs);
+
 	if (sock < 0) {
 		diag("Can't open socket: %s", strerror(errno));
 		return -1;
@@ -487,8 +490,6 @@ connectto(const char *host, const char *port)
 		     host, port, strerror(errno));
 		return -1;
 	}
-
-	freeaddrinfo(addrs);
 
 	return sock;
 }
