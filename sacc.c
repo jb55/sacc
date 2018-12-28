@@ -229,7 +229,7 @@ typedisplay(char t)
 	case '7':
 		return "Find+";
 	case '8':
-		return "Tlnt|";
+		return "Tlnt+";
 	case '9':
 		return "Binf+";
 	case '+':
