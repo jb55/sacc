@@ -20,6 +20,9 @@
 #define _key_searchnext	'n' /* search same string forward */
 #define _key_searchprev	'N' /* search same string backward */
 
+#define _dir_color YELLOW BOLD
+#define _text_color CYAN BOLD
+
 /* default plumber */
 static char *plumber = "xdg-open";
 
