@@ -103,6 +103,7 @@ mbsprint(const char *s, size_t len)
 {
 	wchar_t wc;
 	size_t col = 0, i, slen;
+	char c;
 	int rl, w;
 
 	if (!len)
@@ -110,6 +111,15 @@ mbsprint(const char *s, size_t len)
 
 	slen = strlen(s);
 	for (i = 0; i < slen; i += rl) {
+		// hacky support for color escape sequences
+		if (s[i] == '\x1b') {
+			putchar(s[i++]);
+			while((c = s[i++]) != 'm')
+				putchar(c);
+			putchar('m');
+			rl = 0;
+			continue;
+		}
 		if ((rl = mbtowc(&wc, s + i, slen - i < 4 ? slen - i : 4)) <= 0)
 			break;
 		if ((w = wcwidth(wc)) == -1)
