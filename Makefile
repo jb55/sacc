@@ -10,11 +10,11 @@ OBJ = $(BIN:=.o) ui_$(UI).o
 
 all: $(BIN)
 
-config.h:
+config.h: config.def.h
 	cp config.def.h config.h
 
 $(BIN): $(OBJ)
-	$(CC) $(OBJ) $(LDFLAGS) $(LIBS) -o $@
+	$(CC) $(OBJ) $(LDFLAGS) -lncurses $(LIBS) -o $@
 
 $(OBJ): config.h config.mk common.h
 

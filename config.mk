@@ -7,7 +7,7 @@ MANDIR = $(PREFIX)/share/man/man1
 #UI=txt
 # ti (screen-oriented)
 UI=ti
-LIBS=-lcurses
+LIBS=`pkg-config --libs ncurses`
 
 # Define NEED_ASPRINTF and/or NEED_STRCASESTR in your cflags if your system does
 # not provide asprintf() or strcasestr(), respectively.
