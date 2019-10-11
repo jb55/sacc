@@ -516,13 +516,12 @@ uiselectitem(Item *entry)
 		case _key_search:
 		search:
 			free(searchstr);
-			if ((searchstr = uiprompt("Search for: ")) &&
-			    searchstr[0])
-				goto searchnext;
-			clear(&searchstr);
-			continue;
+			if (!((searchstr = uiprompt("Search for: ")) &&
+			    searchstr[0])) {
+				clear(&searchstr);
+				continue;
+			}
 		case _key_searchnext:
-		searchnext:
 			searchinline(searchstr, entry, +1);
 			continue;
 		case _key_searchprev:
