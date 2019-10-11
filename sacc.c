@@ -788,7 +788,7 @@ searchitem(Item *entry, Item *item)
 static void
 printout(Item *hole)
 {
-	char t;
+	char t = 0;
 
 	if (!hole)
 		return;
