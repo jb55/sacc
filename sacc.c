@@ -461,7 +461,7 @@ connectto(const char *host, const char *port)
 	    .ai_protocol = IPPROTO_TCP,
 	};
 	struct addrinfo *addrs, *addr;
-	int sock, r;
+	int r, sock = -1;
 
 	sigfillset(&set);
 	sigprocmask(SIG_BLOCK, &set, &oset);
