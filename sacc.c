@@ -574,8 +574,11 @@ downloaditem(Item *item)
 	if (!download(item, dest))
 		goto cleanup;
 
-	if (!item->tag)
-		item->tag = path;
+	if (item->tag)
+		goto cleanup;
+
+	item->tag = path;
+
 	return;
 cleanup:
 	free(path);
