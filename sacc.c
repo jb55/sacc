@@ -778,7 +778,6 @@ searchitem(Item *entry, Item *item)
 		clearitem(item);
 	if (!item->dat) {
 		selector = item->selector;
-		free(item->tag);
 		item->selector = item->tag = sel;
 		dig(entry, item);
 		item->selector = selector;
