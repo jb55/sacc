@@ -47,15 +47,15 @@ void
 help(void)
 {
 	puts("Commands:\n"
-	     "N = [1-9]...: browse item N.\n"
-	     "U: print page uri.\n"
-	     "uN...: print item N uri.\n"
+	     "#: browse item number #.\n"
+	     "U: print page URI.\n"
+	     "u#: print item number # URI.\n"
 	     "0: browse previous item.\n"
 	     "n: show next page.\n"
 	     "p: show previous page.\n"
 	     "t: go to the top of the page\n"
 	     "b: go to the bottom of the page\n"
-	     "/foo: search for string \"foo\"\n"
+	     "/str: search for string \"str\"\n"
 	     "!: refetch failed item.\n"
 	     "^D, q: quit.\n"
 	     "h, ?: this help.");
