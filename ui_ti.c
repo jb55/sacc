@@ -118,7 +118,8 @@ help(Item *entry)
 		       S(_key_search) ": search current page.\n"
 		       S(_key_searchnext) ": search string forward.\n"
 		       S(_key_searchprev) ": search string backward.\n"
-		       S(_key_uri) ": print item uri.\n"
+		       S(_key_cururi) ": print page URI.\n"
+		       S(_key_seluri) ": print item URI.\n"
 		       S(_key_help) ": show this help.\n"
 		       "^D, " S(_key_quit) ": exit sacc.\n"
 	};
@@ -536,7 +537,11 @@ uiselectitem(Item *entry)
 			if (entry->raw)
 				continue;
 			return entry;
-		case _key_uri:
+		case _key_cururi:
+			if (dir)
+				displayuri(entry);
+			continue;
+		case _key_seluri:
 			if (dir)
 				displayuri(&dir->items[dir->curline]);
 			continue;

@@ -11,7 +11,8 @@
 #define _key_end	'G' /* move to the bottom of page */
 #define _key_pgnext	'l' /* view highlighted item */
 #define _key_pgprev	'h' /* view previous item */
-#define _key_uri	'u' /* print item uri */
+#define _key_cururi	'U' /* print page uri */
+#define _key_seluri	'u' /* print item uri */
 #define _key_fetch	'L' /* refetch current item */
 #define _key_help	'?' /* display help */
 #define _key_quit	'q' /* exit sacc */

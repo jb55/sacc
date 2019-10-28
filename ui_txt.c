@@ -48,6 +48,7 @@ help(void)
 {
 	puts("Commands:\n"
 	     "N = [1-9]...: browse item N.\n"
+	     "U: print page uri.\n"
 	     "uN...: print item N uri.\n"
 	     "0: browse previous item.\n"
 	     "n: show next page.\n"
@@ -300,6 +301,9 @@ uiselectitem(Item *entry)
 			if (entry->raw)
 				continue;
 			return entry;
+		case 'U':
+			printuri(entry, 0);
+			continue;
 		case 'u':
 			if (item > 0 && item <= nitems)
 				printuri(&dir->items[item-1], item);
