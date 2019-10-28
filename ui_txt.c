@@ -199,11 +199,28 @@ printuri(Item *item, size_t i)
 		             item->selector, item->host, item->port);
 		break;
 	default:
-		fmt = strcmp(item->port, "70") ?
-		      "%1$zu: %2$s: gopher://%3$s:%6$s/%4$c%5$s" :
-		      "%zu: %s: gopher://%s/%c%s";
-		n = snprintf(bufout, sizeof(bufout), fmt, i, item->username,
-		             item->host, item->type, item->selector, item->port);
+		n = snprintf(bufout, sizeof(bufout), "%zu: ", i);
+
+		if (n < sizeof(bufout) && *item->username) {
+			n += snprintf(bufout+n, sizeof(bufout)-n, "%s: ",
+			              item->username);
+		}
+		if (n < sizeof(bufout)) {
+			n += snprintf(bufout+n, sizeof(bufout)-n, "gopher://%s",
+			              item->host);
+		}
+		if (n < sizeof(bufout) && strcmp(item->port, "70")) {
+			n += snprintf(bufout+n, sizeof(bufout)-n, ":%s",
+			              item->port);
+		}
+		if (n < sizeof(bufout)) {
+			n += snprintf(bufout+n, sizeof(bufout)-n, "/%c%s",
+			              item->type, item->selector);
+		}
+		if (n < sizeof(bufout) && item->type == '7' && item->tag) {
+			n += snprintf(bufout+n, sizeof(bufout)-n, " %s",
+			              item->tag + strlen(item->selector));
+		}
 		break;
 	}
 

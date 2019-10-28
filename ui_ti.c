@@ -218,12 +218,20 @@ displayuri(Item *item)
 		             item->selector, item->host, item->port);
 		break;
 	default:
-		fmt = strcmp(item->port, "70") ?
-		      "gopher://%1$s:%4$s/%2$c%3$s" :
-		      "gopher://%s/%c%s";
-		n = snprintf(bufout, sizeof(bufout), fmt,
-		             item->host, item->type,
-		             item->selector, item->port);
+		n = snprintf(bufout, sizeof(bufout), "gopher://%s", item->host);
+
+		if (n < sizeof(bufout) && strcmp(item->port, "70")) {
+			n += snprintf(bufout+n, sizeof(bufout)-n, ":%s",
+			              item->port);
+		}
+		if (n < sizeof(bufout)) {
+			n += snprintf(bufout+n, sizeof(bufout)-n, "/%c%s",
+			              item->type, item->selector);
+		}
+		if (n < sizeof(bufout) && item->type == '7' && item->tag) {
+			n += snprintf(bufout+n, sizeof(bufout)-n, " %s",
+			              item->tag + strlen(item->selector));
+		}
 		break;
 	}
 
