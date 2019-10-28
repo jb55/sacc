@@ -922,12 +922,14 @@ moldentry(char *url)
 	entry->type = gopherpath[0];
 	entry->username = entry->selector = ++gopherpath;
 	if (entry->type == '7') {
-		for (; *p; ++p) {
-			if (*p == '\t') {
-				asprintf(&entry->tag, "%s", gopherpath);
-				*p = '\0';
-				break;
-			}
+		p = gopherpath;
+		if (p = strstr(p, "%09")) {
+			memmove(p+1, p+3, strlen(p+3)+1);
+			*p = '\t';
+		}
+		if (p = strchr(p, '\t')) {
+			asprintf(&entry->tag, "%s", gopherpath);
+			*p = '\0';
 		}
 	}
 	entry->host = host;
