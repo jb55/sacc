@@ -218,7 +218,7 @@ printuri(Item *item, size_t i)
 			              item->type, item->selector);
 		}
 		if (n < sizeof(bufout) && item->type == '7' && item->tag) {
-			n += snprintf(bufout+n, sizeof(bufout)-n, " %s",
+			n += snprintf(bufout+n, sizeof(bufout)-n, "%%09%s",
 			              item->tag + strlen(item->selector));
 		}
 		break;
