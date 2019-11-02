@@ -628,7 +628,7 @@ plumbitem(Item *item)
 {
 	char *file, *path, *tag;
 	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP;
-	int n, dest, plumbitem;
+	int dest, plumbitem;
 
 	if (file = strrchr(item->selector, '/'))
 		++file;

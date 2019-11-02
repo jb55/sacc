@@ -194,7 +194,6 @@ displaystatus(Item *item)
 static void
 displayuri(Item *item)
 {
-	char *fmt;
 	size_t n;
 
 	if (item->type == 0 || item->type == 'i')

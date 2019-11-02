@@ -173,7 +173,6 @@ uidisplay(Item *entry)
 void
 printuri(Item *item, size_t i)
 {
-	char *fmt;
 	int n;
 
 	if (!item)
