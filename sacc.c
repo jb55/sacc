@@ -463,7 +463,8 @@ connectto(const char *host, const char *port)
 	struct addrinfo *addrs, *addr;
 	int r, sock = -1;
 
-	sigfillset(&set);
+	sigemptyset(&set);
+	sigaddset(&set, SIGWINCH);
 	sigprocmask(SIG_BLOCK, &set, &oset);
 
 	if (r = getaddrinfo(host, port, &hints, &addrs)) {
