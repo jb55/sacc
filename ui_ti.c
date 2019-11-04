@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#include "config.h"
 #include "common.h"
+#include "config.h"
 
 #define C(c) #c
 #define S(c) C(c)

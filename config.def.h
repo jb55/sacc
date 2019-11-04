@@ -20,6 +20,30 @@
 #define _key_searchnext	'n' /* search same string forward */
 #define _key_searchprev	'N' /* search same string backward */
 
+#define PLAIN ""
+
+static struct type_def _types[] = {
+	DEFTYPE(TYPE_TEXT, '0', "Text", CYAN BOLD, BOLD),
+	DEFTYPE(TYPE_DIR,  '1', "Dir ", YELLOW BOLD, BOLD),
+	DEFTYPE(TYPE_CSO,  '2', "CSO ", BOLD, BOLD),
+	DEFTYPE(TYPE_ERR,  '3', "Err ", BOLD, BOLD),
+	DEFTYPE(TYPE_MACF, '4', "Macf", BOLD, BOLD),
+	DEFTYPE(TYPE_DOSF, '5', "DOSf", BOLD, BOLD),
+	DEFTYPE(TYPE_UUEF, '6', "UUEf", BOLD, BOLD),
+	DEFTYPE(TYPE_FIND, '7', "Find", BOLD, BOLD),
+	DEFTYPE(TYPE_TELN, '8', "Tlnt", BOLD, BOLD),
+	DEFTYPE(TYPE_BINF, '9', "Binf", BOLD, BOLD),
+	DEFTYPE(TYPE_MIRR, '+', "Mirr", BOLD, BOLD),
+	DEFTYPE(TYPE_IBMT, 'T', "IBMt", BOLD, BOLD),
+	DEFTYPE(TYPE_GIF,  'g', "GIF ", BOLD, BOLD),
+	DEFTYPE(TYPE_IMG,  'I', "Img ", BOLD, BOLD),
+	DEFTYPE(TYPE_HTML, 'h', "HTML", BOLD, BOLD),
+	DEFTYPE(TYPE_LIT,  'i', "    ", PLAIN, PLAIN),
+
+	DEFTYPE(TYPE_RESV, '\0', "!   ", BOLD, BOLD),
+	DEFTYPE(TYPE_UNKN, '\0', "UNKN", BOLD, BOLD),
+};
+
 /* default plumber */
 static char *plumber = "xdg-open";
 

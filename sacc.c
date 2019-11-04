@@ -54,6 +54,22 @@ die(const char *fmt, ...)
 	exit(1);
 }
 
+
+enum type
+parse_type(char t)
+{
+	for (int i = 0; i < ARRAY_SIZE(_types); i++) {
+		if (_types[i].id == t)
+			return (enum type)i;
+	}
+
+	if (t >= '0' && t <= 'Z') {
+		return TYPE_RESV;
+	}
+
+	return TYPE_UNKN;
+}
+
 #ifdef NEED_ASPRINTF
 int
 asprintf(char **s, const char *fmt, ...)
@@ -211,46 +227,16 @@ clearitem(Item *item)
 const char *
 typedisplay(char t)
 {
-	switch (t) {
-	case '0':
-		return "Text+";
-	case '1':
-		return "Dir +";
-	case '2':
-		return "CSO |";
-	case '3':
-		return "Err |";
-	case '4':
-		return "Macf+";
-	case '5':
-		return "DOSf+";
-	case '6':
-		return "UUEf+";
-	case '7':
-		return "Find+";
-	case '8':
-		return "Tlnt+";
-	case '9':
-		return "Binf+";
-	case '+':
-		return "Mirr+";
-	case 'T':
-		return "IBMt|";
-	case 'g':
-		return "GIF +";
-	case 'I':
-		return "Img +";
-	case 'h':
-		return "HTML+";
-	case 'i':
-		return "    |";
-	default:
-		/* "Characters '0' through 'Z' are reserved." (ASCII) */
-		if (t >= '0' && t <= 'Z')
-			return "!   |";
-		else
-			return "UNKN|";
+	for (int i = 0; i < ARRAY_SIZE(_types); i++) {
+		if (_types[i].id == t)
+			return _types[i].label;
 	}
+
+	/* "Characters '0' through 'Z' are reserved." (ASCII) */
+	if (t >= '0' && t <= 'Z')
+		return _types[TYPE_RESV].label;
+	else
+		return _types[TYPE_UNKN].label;
 }
 
 static void
@@ -684,6 +670,7 @@ dig(Item *entry, Item *item)
 {
 	char *plumburi = NULL;
 	int t;
+	enum type type;
 
 	if (item->raw) /* already in cache */
 		return item->type;
@@ -691,28 +678,29 @@ dig(Item *entry, Item *item)
 		item->entry = entry ? entry : item;
 
 	t = item->redtype ? item->redtype : item->type;
-	switch (t) {
-	case 'h': /* fallthrough */
+	type = parse_type(t);
+	switch (type) {
+	case TYPE_HTML: /* fallthrough */
 		if (!strncmp(item->selector, "URL:", 4)) {
 			plumb(item->selector+4);
 			return 0;
 		}
-	case '0':
+	case TYPE_TEXT:
 		if (!fetchitem(item))
 			return 0;
 		break;
-	case '1':
-	case '7':
+	case TYPE_DIR:
+	case TYPE_FIND:
 		if (!fetchitem(item) || !(item->dat = molddiritem(item->raw)))
 			return 0;
 		break;
-	case '4':
-	case '5':
-	case '6':
-	case '9':
+	case TYPE_MACF:
+	case TYPE_DOSF:
+	case TYPE_UUEF:
+	case TYPE_BINF:
 		downloaditem(item);
 		return 0;
-	case '8':
+	case TYPE_TELN:
 		if (asprintf(&plumburi, "telnet://%s%s%s:%s",
 		             item->selector, item->selector ? "@" : "",
 		             item->host, item->port) < 0)
@@ -720,7 +708,7 @@ dig(Item *entry, Item *item)
 		plumb(plumburi);
 		free(plumburi);
 		return 0;
-	case 'T':
+	case TYPE_IBMT:
 		if (asprintf(&plumburi, "tn3270://%s%s%s:%s",
 		             item->selector, item->selector ? "@" : "",
 		             item->host, item->port) < 0)
@@ -728,15 +716,18 @@ dig(Item *entry, Item *item)
 		plumb(plumburi);
 		free(plumburi);
 		return 0;
-	default:
-		if (t >= '0' && t <= 'Z') {
-			diag("Type %c (%s) not supported", t, typedisplay(t));
-			return 0;
-		}
-	case 'g':
-	case 'I':
+	case TYPE_GIF:
+	case TYPE_IMG:
 		plumbitem(item);
-	case 'i':
+		return 0;
+	case TYPE_LIT:
+	case TYPE_UNKN:
+		return 0;
+	case TYPE_MIRR:
+	case TYPE_CSO:
+	case TYPE_ERR:
+	case TYPE_RESV:
+		diag("Type %c (%s) not supported", t, typedisplay(t));
 		return 0;
 	}
 
