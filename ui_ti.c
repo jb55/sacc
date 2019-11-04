@@ -94,8 +94,14 @@ uiprompt(char *fmt, ...)
 static void
 printitem(Item *item)
 {
-	if (snprintf(bufout, sizeof(bufout), "%s %s", typedisplay(item->type),
-	    item->username) >= sizeof(bufout))
+	struct type_def *type = &_types[parse_type(item->type)];
+	const char *typestyle = type->style;
+	const char *style = type->textstyle;
+
+	if (snprintf(bufout, sizeof(bufout), "%s%s  " RESET "%s%s" RESET,
+		     type->style, typedisplay(item->type), type->textstyle,
+		     item->username)
+	    >= sizeof(bufout))
 		bufout[sizeof(bufout)-1] = '\0';
 	mbsprint(bufout, columns);
 	putchar('\r');
