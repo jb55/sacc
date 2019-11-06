@@ -108,7 +108,9 @@ help(Item *entry)
 		.type = '0',
 		.raw = "Commands:\n"
 		       "Down, " S(_key_lndown) ": move one line down.\n"
+			S(_key_entrydown) ": move to next link.\n"
 		       "Up, " S(_key_lnup) ": move one line up.\n"
+			S(_key_entryup) ": move to previous link.\n"
 		       "PgDown, " S(_key_pgdown) ": move one page down.\n"
 		       "PgUp, " S(_key_pgup) ": move one page up.\n"
 		       "Home, " S(_key_home) ": move to top of the page.\n"
