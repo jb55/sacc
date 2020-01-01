@@ -211,8 +211,8 @@ displayuri(Item *item)
 		             item->selector, item->host, item->port);
 		break;
 	case 'h':
-		n = snprintf(bufout, sizeof(bufout), "%s: %s",
-		             item->username, item->selector);
+		n = snprintf(bufout, sizeof(bufout), "%s",
+		             item->selector);
 		break;
 	case 'T':
 		n = snprintf(bufout, sizeof(bufout), "tn3270://%s@%s:%s",
