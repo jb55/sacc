@@ -23,5 +23,5 @@
 /* default plumber */
 static char *plumber = "xdg-open";
 
-/* temporary directory */
-static char *tmpdir = "/tmp/sacc";
+/* temporary directory template (must end with six 'X' characters) */
+static char tmpdir[] = "/tmp/sacc-XXXXXX";

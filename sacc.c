@@ -976,7 +976,7 @@ setup(void)
 	sigaction(SIGHUP, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
 
-	if (mkdir(tmpdir, S_IRWXU) < 0 && errno != EEXIST)
+	if (!mkdtemp(tmpdir))
 		die("mkdir: %s: %s", tmpdir, strerror(errno));
 	if(interactive = isatty(1)) {
 		uisetup();
